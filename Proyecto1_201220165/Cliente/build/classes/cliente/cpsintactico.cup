@@ -1,0 +1,3423 @@
+package cliente;
+
+import java_cup.runtime.*;
+import java.util.*;
+
+parser code{:
+/* *Metodo que se llama automaticamente ante algun error sintactico */
+public void syntax_error(Symbol s){
+    //System.out.println("Error en la linea: " + (s.right + 1) + ", columna: " + (s.left + 1) + ". Identificador " + s.value + " no reconocido");
+    Ventana.errores.add("Sintactico-" + s.value +". No reconocido -" + String.valueOf((s.left + 1)) + "-" + String.valueOf((s.right + 1)));
+}
+
+/* *Metodo que se llama en el momento que ya no es posible una recuperacion de errores */
+public void unrecovered_syntax_error(Symbol s){
+    //System.out.println("Error en la linea: " + (s.right + 1) + ", columna: " + (s.left + 1) + ". Identificador " + s.value + " no reconocido");
+}
+
+    Result datosresult = null;
+    boolean yahaycolor, yahaytextcolor, yahayfont, yahayalign;
+
+    ArrayList<Variables> variables = new ArrayList();
+:}
+
+action code
+{:
+    public boolean VerificarDatosResult(){
+        if (datosresult == null){
+            return true;
+        }else{
+            return false;
+        }
+    }
+
+    public String DevolverBGColor(String color){
+        color = color.replace("\"", "");
+        if(color.equalsIgnoreCase("rojo")){
+            return "style=background-color: red";
+        }else if(color.equalsIgnoreCase("amarillo")){
+            return "style=background-color: yellow";
+        }else if(color.equalsIgnoreCase("azul")){
+            return "style=background-color: blue";
+        }else if(color.equalsIgnoreCase("verde")){
+            return "style=background-color: green";
+        }else if(color.equalsIgnoreCase("gris")){
+            return "style=background-color: gray";
+        }else if(color.equalsIgnoreCase("anaranjado")){
+            return "style=background-color: orange";
+        }else if(color.equalsIgnoreCase("morado")){
+            return "style=background-color: purple";
+        }else{
+            return "error";
+        }
+    }
+
+    public String DevolverColor(String tipo, String color){
+        color = color.replace("\"", "");
+        if(color.equalsIgnoreCase("rojo")){
+            return tipo + "=red";
+        }else if(color.equalsIgnoreCase("amarillo")){
+            return tipo + "= yellow";
+        }else if(color.equalsIgnoreCase("azul")){
+            return tipo + "=blue";
+        }else if(color.equalsIgnoreCase("verde")){
+            return tipo + "=green";
+        }else if(color.equalsIgnoreCase("gris")){
+            return tipo + "=gray";
+        }else if(color.equalsIgnoreCase("anaranjado")){
+            return tipo + "= orange";
+        }else if(color.equalsIgnoreCase("morado")){
+            return tipo + "=purple";
+        }else{
+            return "error";
+        }
+    }
+
+    public boolean ExisteVariable(Variables var){
+        for(int i = 0; i < variables.size(); i++){
+            if(variables.get(i).getNombre().equalsIgnoreCase(var.getNombre())){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean ExisteVariable(String id){
+        for(int i = 0; i < variables.size(); i++){
+            if(variables.get(i).getNombre().equalsIgnoreCase(id)){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public Valor ObtenerValorVariable(String id){
+        for(int i = 0; i < variables.size(); i++){
+            if(variables.get(i).getNombre().equalsIgnoreCase(id)){
+                return variables.get(i).getValor();
+            }
+        }
+        return null;
+    }
+
+    public void MostrarVariables(){
+        for(int i = 0; i < variables.size(); i++){
+            //System.out.println("Nombre: " + variables.get(i).getNombre() + " Tipo: " + variables.get(i).getTipo() + " Valor: " + variables.get(i).getValor().getValor());
+        }
+    }
+
+    public Variables ObtenerVariable(String id){
+        for(int i = 0; i < variables.size(); i++){
+            if(variables.get(i).getNombre().equalsIgnoreCase(id)){
+                return variables.get(i);
+            }
+        }
+        return null;
+    }
+:}
+
+terminal String tmayor, tmenor, thtml, thead, tbody, ttitulo, ttitle, ttable, tth, ttd, ttr, tdiv, tparrafo, tbr, thr, tcolor, ttextcolor, talign, tfont, tdolar, tresult, tscore, tvariables, tpunto, tcorcheteabrir, tcorchetecerrar;
+terminal String tnombre, tpuntoycoma, tcantidad, tmetodos, tclases, tint, tchar, tfloat, tstring, tboolean, ttrue, tfalse, tasignar, tmas, tresta, tdivision, tmultiplicacion, tmodulo, tparentesisabrir, tparentesiscerrar;
+terminal String tmenorigual, tmayorigual, tigual, tnoigual, tand, tor, tnot, tprint, tnumero, tid, tcaracter, tcadena, tcomentario, tcomentariomulti, tcoma, ttexto, tiniciocpreport, tdiagonal, tnum, ttipo, tfuncion, tclase, tparametros;
+
+non terminal String INICIO, LSENTENCIASCPREPORT, DECLARACION, ASIGNACION, TIPO, PRINT, RESULTA, AUXRESULT, VALORESRESULT, HEAD, TITULO, CPREPORT, BODY, SENTENCIASBODY, AUXSENTENCIASBODY, AUXETIQUETA, PARRAFO, AUXPARRAFO;
+non terminal String AUXTITULO, AUXTABLA, ENCABEZADOS, TABLA, AUXENCABEZADOS, AUXTEXTOCELDA, AUXCONTENIDOTABLA, AUXTEXTOTABLA, AUXENCABEZADOSTABLA, AUXDIV, ATRIBUTOSVARIABLES, ATRIBUTOSMETODOS;
+non terminal Valor EXP;
+non terminal Variables ID;
+non terminal ArrayList<Variables> LID;
+
+precedence left tand, tor;
+precedence right tnot;
+precedence left tmenor, tmayor, tmenorigual, tmayorigual, tigual, tnoigual;
+precedence left tmas, tresta;
+precedence left tmultiplicacion, tdivision, tmodulo;
+precedence left tparentesisabrir;
+
+start with INICIO;
+
+INICIO ::= CPREPORT:cpreport1 tmenor thtml AUXETIQUETA:auxetiqueta tmayor CPREPORT:cpreport2 HEAD:head CPREPORT:cpreport3 BODY:body CPREPORT:cpreport4 tmenor tdiagonal thtml tmayor CPREPORT:cpreport5{:
+            MostrarVariables();
+            String respuesta = "<!DOCTYPE html>" + cpreport1 + "\n<html ";
+
+            String background = "";
+            String font = "";
+            String align = "";
+            String textcolor = "";
+            String auxetiquetas[] = auxetiqueta.split("-");
+            for(int i = 0; i < auxetiquetas.length; i++){
+                if(auxetiquetas[i].contains("background")){
+                    background = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("face")){
+                    font = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("align")){
+                    align = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("=")){
+                    textcolor = auxetiquetas[i];
+                }
+            }
+
+            respuesta += background + " " + align + ">\n";
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "<font " + font + " " + textcolor + ">\n"; 
+            }
+
+            respuesta += cpreport2 + head + cpreport3 + body + cpreport4;
+
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "</font>\n"; 
+            }
+
+            respuesta += "</html>\n" + cpreport5;
+            Ventana.html = respuesta;
+        :}
+        /*PUEDE O NO VENIR UN HEAD NI UN BODY*/
+        | CPREPORT:cpreport1 tmenor thtml AUXETIQUETA:auxetiqueta tmayor CPREPORT:cpreport2 tmenor tdiagonal thtml tmayor CPREPORT:cpreport3{:
+            MostrarVariables();
+
+            String respuesta = "<!DOCTYPE html>" + cpreport1 + "\n<html ";
+
+            String background = "";
+            String font = "";
+            String align = "";
+            String textcolor = "";
+            String auxetiquetas[] = auxetiqueta.split("-");
+            for(int i = 0; i < auxetiquetas.length; i++){
+                if(auxetiquetas[i].contains("background")){
+                    background = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("face")){
+                    font = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("align")){
+                    align = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("=")){
+                    textcolor = auxetiquetas[i];
+                }
+            }
+
+            respuesta += background + " " + align + ">\n";
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "<font " + font + " " + textcolor + ">\n"; 
+            }
+
+            respuesta += cpreport2;
+
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "</font>\n"; 
+            }
+
+            respuesta += "</html> \n" + cpreport3;
+            Ventana.html = respuesta;
+        :}
+        /*PUEDE VENIR UN HEAD PERO NO UN BODY*/
+        | CPREPORT:cpreport1 tmenor thtml AUXETIQUETA:auxetiqueta tmayor CPREPORT:cpreport2 HEAD:head CPREPORT:cpreport3 tmenor tdiagonal thtml tmayor CPREPORT:cpreport4{:
+            MostrarVariables();
+            String respuesta = "<!DOCTYPE html>" + cpreport1 + "\n<html ";
+
+            String background = "";
+            String font = "";
+            String align = "";
+            String textcolor = "";
+            String auxetiquetas[] = auxetiqueta.split("-");
+            for(int i = 0; i < auxetiquetas.length; i++){
+                if(auxetiquetas[i].contains("background")){
+                    background = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("face")){
+                    font = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("align")){
+                    align = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("=")){
+                    textcolor = auxetiquetas[i];
+                }
+            }
+
+            respuesta += background + " " + align + ">\n";
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "<font " + font + " " + textcolor + ">\n"; 
+            }
+
+            respuesta += cpreport2 + head + cpreport3;
+
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "</font>\n"; 
+            }
+
+            respuesta += "</html> \n" + cpreport4;
+            Ventana.html = respuesta;
+        :}
+        /*PUEDE VENIR UN BODY PERO NO UN HEAD*/
+        | CPREPORT:cpreport1 tmenor thtml AUXETIQUETA:auxetiqueta tmayor CPREPORT:cpreport2 BODY:body CPREPORT:cpreport3 tmenor tdiagonal thtml tmayor CPREPORT:cpreport4{:
+            MostrarVariables();
+            String respuesta = "<!DOCTYPE html>" + cpreport1 + "\n<html ";
+
+            String background = "";
+            String font = "";
+            String align = "";
+            String textcolor = "";
+            String auxetiquetas[] = auxetiqueta.split("-");
+            for(int i = 0; i < auxetiquetas.length; i++){
+                if(auxetiquetas[i].contains("background")){
+                    background = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("face")){
+                    font = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("align")){
+                    align = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("=")){
+                    textcolor = auxetiquetas[i];
+                }
+            }
+
+            respuesta += background + " " + align + ">\n";
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "<font " + font + " " + textcolor + ">\n"; 
+            }
+
+            respuesta += cpreport2 + body + cpreport3;
+
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "</font>\n"; 
+            }
+
+            respuesta += "</html> \n" + cpreport4;
+            Ventana.html = respuesta;
+        :}
+        /*PUEDEN VENIR SOLO SENTENCIAS CPREPORT*/
+        | CPREPORT:cpreport{:
+            Ventana.html = "<!DOCTYPE html>" + cpreport;
+        :}
+        | error CPREPORT HEAD CPREPORT BODY CPREPORT tmenor tdiagonal thtml tmayor CPREPORT{:
+:}
+        | error CPREPORT HEAD CPREPORT tmenor tdiagonal thtml tmayor CPREPORT
+        | error CPREPORT BODY CPREPORT tmenor tdiagonal thtml tmayor CPREPORT
+        | error tmayor CPREPORT
+        | error;
+
+HEAD ::= tmenor thead AUXETIQUETA:auxetiqueta tmayor CPREPORT:cpreport1 TITULO:titulo CPREPORT:cpreport2 tmenor tdiagonal thead tmayor{:
+            String respuesta = "<head ";
+            
+            String background = "";
+            String font = "";
+            String align = "";
+            String textcolor = "";
+            String auxetiquetas[] = auxetiqueta.split("-");
+            for(int i = 0; i < auxetiquetas.length; i++){
+                if(auxetiquetas[i].contains("background")){
+                    background = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("face")){
+                    font = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("align")){
+                    align = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("=")){
+                    textcolor = auxetiquetas[i];
+                }
+            }
+            respuesta += background + " " + align + ">\n";
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "<font " + font + " " + textcolor + ">\n"; 
+            }
+            respuesta += cpreport1 + titulo + cpreport2;
+
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "</font>\n"; 
+            }
+            respuesta += "</head>\n";
+            RESULT = respuesta;
+        :}
+        | tmenor thead AUXETIQUETA:auxetiqueta tmayor CPREPORT:cpreport tmenor tdiagonal thead tmayor{:
+            String respuesta = "<head ";
+            
+            String background = "";
+            String font = "";
+            String align = "";
+            String textcolor = "";
+            String auxetiquetas[] = auxetiqueta.split("-");
+            for(int i = 0; i < auxetiquetas.length; i++){
+                if(auxetiquetas[i].contains("background")){
+                    background = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("face")){
+                    font = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("align")){
+                    align = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("=")){
+                    textcolor = auxetiquetas[i];
+                }
+            }
+            respuesta += background + " " + align + ">\n";
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "<font " + font + " " + textcolor + ">\n"; 
+            }
+            respuesta += cpreport;
+
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "</font>\n"; 
+            }
+            respuesta += "</head>\n";
+            RESULT = respuesta;
+        :}
+        | error tmayor CPREPORT TITULO CPREPORT tmenor tdiagonal thead tmayor{:
+            RESULT = "";
+        :}
+        | error CPREPORT tmenor tdiagonal thead tmayor{:
+            RESULT = "";
+        :};
+
+TITULO ::= tmenor ttitle AUXETIQUETA:auxetiqueta tmayor CPREPORT:cpreport1 ttexto:texto CPREPORT:cpreport tmenor tdiagonal ttitle tmayor{:
+            String respuesta = "<title ";
+            String background = "";
+            String font = "";
+            String align = "";
+            String textcolor = "";
+            String auxetiquetas[] = auxetiqueta.split("-");
+            for(int i = 0; i < auxetiquetas.length; i++){
+                if(auxetiquetas[i].contains("background")){
+                    background = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("face")){
+                    font = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("align")){
+                    align = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("=")){
+                    textcolor = auxetiquetas[i];
+                }
+            }
+            respuesta += background + " " + align + ">";
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "<font " + font + " " + textcolor + ">"; 
+            }
+            respuesta += cpreport1 + texto + cpreport;
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "</font>"; 
+            }
+            respuesta += "</title>\n";
+            RESULT = respuesta;
+        :}
+        | tmenor ttitle AUXETIQUETA:auxetiqueta tmayor CPREPORT:cpreport tmenor tdiagonal ttitle tmayor{:
+            String respuesta = "<title ";
+            String background = "";
+            String font = "";
+            String align = "";
+            String textcolor = "";
+            String auxetiquetas[] = auxetiqueta.split("-");
+            for(int i = 0; i < auxetiquetas.length; i++){
+                if(auxetiquetas[i].contains("background")){
+                    background = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("face")){
+                    font = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("align")){
+                    align = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("=")){
+                    textcolor = auxetiquetas[i];
+                }
+            }
+            respuesta += background + " " + align + ">";
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "<font " + font + " " + textcolor + ">"; 
+            }
+            respuesta += cpreport;
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "</font>"; 
+            }
+            respuesta += "</title>\n";
+            RESULT = respuesta;
+        :}
+        | error tmayor CPREPORT ttexto CPREPORT tmenor tdiagonal ttitle tmayor{:
+            RESULT = "";
+        :}
+        | error CPREPORT tmenor tdiagonal ttitle tmayor{:
+            RESULT = "";
+        :};
+
+BODY ::= tmenor tbody AUXETIQUETA:auxetiqueta tmayor CPREPORT:cpreport SENTENCIASBODY:sentencias{:
+            String respuesta = "<body ";
+            String background = "";
+            String font = "";
+            String align = "";
+            String textcolor = "";
+            String auxetiquetas[] = auxetiqueta.split("-");
+            for(int i = 0; i < auxetiquetas.length; i++){
+                if(auxetiquetas[i].contains("background")){
+                    background = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("face")){
+                    font = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("align")){
+                    align = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("=")){
+                    textcolor = auxetiquetas[i];
+                }
+            }
+            respuesta += background + " " + align + ">\n";
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "<font " + font + " " + textcolor + ">\n"; 
+            }
+            respuesta += cpreport;
+            String aux[] = sentencias.split("</body");
+            for(int i = 0; i < aux.length; i++){
+                if(i == aux.length-1){
+                    if(!font.equals("") || !textcolor.equals("")){
+                       respuesta += "</font>"; 
+                    }
+                    respuesta+="</body>\n";
+                }else{
+                    respuesta+=aux[i];
+                }
+            }
+            RESULT = respuesta;
+        :}
+        | error tmayor CPREPORT SENTENCIASBODY{:
+            RESULT = "";
+        :};
+
+SENTENCIASBODY ::= tmenor ttitulo:tit AUXETIQUETA:auxetiqueta tmayor CPREPORT:cpreport AUXTITULO:auxtitulo CPREPORT:cpreport1 SENTENCIASBODY:sentencias{:  
+                    String respuesta = "<" + tit + " ";
+                    String background = "";
+                    String font = "";
+                    String align = "";
+                    String textcolor = "";
+                    String auxetiquetas[] = auxetiqueta.split("-");
+                    for(int i = 0; i < auxetiquetas.length; i++){
+                        if(auxetiquetas[i].contains("background")){
+                            background = auxetiquetas[i];
+                        }else if(auxetiquetas[i].contains("face")){
+                            font = auxetiquetas[i];
+                        }else if(auxetiquetas[i].contains("align")){
+                            align = auxetiquetas[i];
+                        }else if(auxetiquetas[i].contains("=")){
+                            textcolor = auxetiquetas[i];
+                        }
+                    }
+                    respuesta += background + " " + align + ">\n";
+                    if(!font.equals("") || !textcolor.equals("")){
+                        respuesta += "<font " + font + " " + textcolor + ">\n"; 
+                    }
+                    respuesta += cpreport + auxtitulo;
+                    if(!font.equals("") || !textcolor.equals("")){
+                        respuesta += "</font>\n";
+                    }
+                    respuesta += cpreport1 + sentencias;
+                    RESULT = respuesta;
+                :}
+                | tmenor ttable AUXETIQUETA:auxetiqueta tmayor CPREPORT:cpreport1 AUXTABLA:auxtabla CPREPORT:cpreport2 SENTENCIASBODY:sentencias{:
+                        String respuesta = "<table border = \"2px\" ";
+                        String background = "";
+                        String font = "";
+                        String align = "";
+                        String textcolor = "";
+                        String auxetiquetas[] = auxetiqueta.split("-");
+                        for(int i = 0; i < auxetiquetas.length; i++){
+                        if(auxetiquetas[i].contains("background")){
+                            background = auxetiquetas[i];
+                        }else if(auxetiquetas[i].contains("face")){
+                            font = auxetiquetas[i];
+                        }else if(auxetiquetas[i].contains("align")){
+                            align = auxetiquetas[i];
+                        }else if(auxetiquetas[i].contains("=")){
+                            textcolor = auxetiquetas[i];
+                        }
+                    }
+                    respuesta += background + " " + align + ">\n";
+                    if(!font.equals("") || !textcolor.equals("")){
+                        respuesta += "<font " + font + " " + textcolor + ">\n"; 
+                    }
+                    respuesta += cpreport1 + auxtabla;
+                    if(!font.equals("") || !textcolor.equals("")){
+                        respuesta += "</font>\n";
+                    }
+                    respuesta += cpreport2 + sentencias;
+                    RESULT = respuesta;
+                :}
+                | tmenor tdiv AUXETIQUETA:auxetiqueta tmayor CPREPORT:cpreport AUXDIV:auxdiv CPREPORT:cpreport1 SENTENCIASBODY:sentencias{:
+                    String respuesta = "<div ";
+                    String background = "";
+                        String font = "";
+                        String align = "";
+                        String textcolor = "";
+                        String auxetiquetas[] = auxetiqueta.split("-");
+                        for(int i = 0; i < auxetiquetas.length; i++){
+                        if(auxetiquetas[i].contains("background")){
+                            background = auxetiquetas[i];
+                        }else if(auxetiquetas[i].contains("face")){
+                            font = auxetiquetas[i];
+                        }else if(auxetiquetas[i].contains("align")){
+                            align = auxetiquetas[i];
+                        }else if(auxetiquetas[i].contains("=")){
+                            textcolor = auxetiquetas[i];
+                        }
+                    }
+                    respuesta += background + " " + align + ">\n";
+                    if(!font.equals("") || !textcolor.equals("")){
+                        respuesta += "<font " + font + " " + textcolor + ">\n"; 
+                    }
+                    respuesta += cpreport + auxdiv;
+                    if(!font.equals("") || !textcolor.equals("")){
+                        respuesta += "</font>\n";
+                    }
+                    respuesta += cpreport1 + sentencias;
+                    RESULT = respuesta;
+                :}
+                | tmenor tparrafo AUXETIQUETA:auxetiqueta tmayor CPREPORT:cpreport1 AUXPARRAFO:auxparrafo CPREPORT:cpreport2 SENTENCIASBODY:sentencias{:
+                    String respuesta = "<p ";
+                    String background = "";
+                        String font = "";
+                        String align = "";
+                        String textcolor = "";
+                        String auxetiquetas[] = auxetiqueta.split("-");
+                        for(int i = 0; i < auxetiquetas.length; i++){
+                        if(auxetiquetas[i].contains("background")){
+                            background = auxetiquetas[i];
+                        }else if(auxetiquetas[i].contains("face")){
+                            font = auxetiquetas[i];
+                        }else if(auxetiquetas[i].contains("align")){
+                            align = auxetiquetas[i];
+                        }else if(auxetiquetas[i].contains("=")){
+                            textcolor = auxetiquetas[i];
+                        }
+                    }
+                    respuesta += background + " " + align + ">\n";
+                    if(!font.equals("") || !textcolor.equals("")){
+                        respuesta += "<font " + font + " " + textcolor + ">\n"; 
+                    }
+                    respuesta += cpreport1 + auxparrafo;
+                    if(!font.equals("") || !textcolor.equals("")){
+                        respuesta += "</font>\n";
+                    }
+                    respuesta += cpreport2 + sentencias;
+                    RESULT = respuesta;
+                :}
+                | tmenor tbr tmayor CPREPORT:cpreport SENTENCIASBODY:sentencias{:
+                    RESULT = "<br>\n" + cpreport + sentencias;
+                :}
+                | tmenor thr tmayor CPREPORT:cpreport SENTENCIASBODY:sentencias{:
+                    RESULT = "<hr>\n" + cpreport + sentencias;
+                :}
+                | ttexto:texto CPREPORT:cpreport SENTENCIASBODY:sentencias{:
+                    RESULT = texto + "\n" + cpreport + sentencias;
+                :}
+                | tmenor tdiagonal tbody tmayor{:
+                    RESULT = "</body>";
+                :}
+                | error tmayor CPREPORT AUXTITULO CPREPORT SENTENCIASBODY{:
+                    RESULT = "";
+                :}
+                | error tmayor CPREPORT AUXTABLA CPREPORT SENTENCIASBODY{:
+                    RESULT = "";
+                :}
+                | error tmayor CPREPORT AUXDIV CPREPORT SENTENCIASBODY{:
+                    RESULT = "";
+                :}
+                | error tmayor CPREPORT AUXPARRAFO CPREPORT SENTENCIASBODY{:
+                    RESULT = "";
+                :}
+                | error CPREPORT SENTENCIASBODY{:
+                    RESULT = "";
+                :}
+                | error tbody tmayor{:
+                    RESULT = "";
+                :};
+
+AUXDIV ::= tmenor ttitulo:tit AUXETIQUETA:auxetiqueta tmayor CPREPORT:cpreport1 AUXTITULO:aux CPREPORT:cpreport2 AUXDIV:aux2{:
+            String respuesta = "<" + tit + " ";
+            String background = "";
+            String font = "";
+            String align = "";
+            String textcolor = "";
+            String auxetiquetas[] = auxetiqueta.split("-");
+            for(int i = 0; i < auxetiquetas.length; i++){
+                if(auxetiquetas[i].contains("background")){
+                    background = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("face")){
+                    font = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("align")){
+                    align = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("=")){
+                    textcolor = auxetiquetas[i];
+                }
+            }
+            respuesta += background + " " + align + ">\n";
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "<font " + font + " " + textcolor + ">\n"; 
+            }
+            respuesta += cpreport1 + aux;
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "</font>\n";
+            }
+            respuesta += cpreport2 + aux2;
+            RESULT = respuesta;
+        :}
+        | tmenor ttable AUXETIQUETA:auxetiqueta tmayor CPREPORT:cpreport1 AUXTABLA:aux CPREPORT:cpreport2 AUXDIV:aux2{:
+            String respuesta = "<table ";
+            String background = "";
+            String font = "";
+            String align = "";
+            String textcolor = "";
+            String auxetiquetas[] = auxetiqueta.split("-");
+            for(int i = 0; i < auxetiquetas.length; i++){
+                if(auxetiquetas[i].contains("background")){
+                    background = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("face")){
+                    font = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("align")){
+                    align = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("=")){
+                    textcolor = auxetiquetas[i];
+                }
+            }
+            respuesta += background + " " + align + ">\n";
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "<font " + font + " " + textcolor + ">\n"; 
+            }
+            respuesta += cpreport1 + aux;
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "</font>\n";
+            }
+            respuesta += cpreport2 + aux2;
+            RESULT = respuesta;
+        :}
+        | tmenor tdiv AUXETIQUETA:auxetiqueta tmayor CPREPORT:cpreport1 AUXDIV:aux CPREPORT:cpreport2 AUXDIV:aux2{:
+            String respuesta = "<div ";
+            String background = "";
+            String font = "";
+            String align = "";
+            String textcolor = "";
+            String auxetiquetas[] = auxetiqueta.split("-");
+            for(int i = 0; i < auxetiquetas.length; i++){
+                if(auxetiquetas[i].contains("background")){
+                    background = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("face")){
+                    font = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("align")){
+                    align = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("=")){
+                    textcolor = auxetiquetas[i];
+                }
+            }
+            respuesta += background + " " + align + ">\n";
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "<font " + font + " " + textcolor + ">\n"; 
+            }
+            respuesta += cpreport1 + aux;
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "</font>\n";
+            }
+            respuesta += cpreport2 + aux2;
+            RESULT = respuesta;
+        :}
+        | tmenor tparrafo AUXETIQUETA:auxetiqueta tmayor CPREPORT:cpreport1 AUXPARRAFO:aux CPREPORT:cpreport2 AUXDIV:aux2{:
+            String respuesta = "<p ";
+            String background = "";
+            String font = "";
+            String align = "";
+            String textcolor = "";
+            String auxetiquetas[] = auxetiqueta.split("-");
+            for(int i = 0; i < auxetiquetas.length; i++){
+                if(auxetiquetas[i].contains("background")){
+                    background = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("face")){
+                    font = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("align")){
+                    align = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("=")){
+                    textcolor = auxetiquetas[i];
+                }
+            }
+            respuesta += background + " " + align + ">\n";
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "<font " + font + " " + textcolor + ">\n"; 
+            }
+            respuesta += cpreport1 + aux;
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "</font>\n";
+            }
+            respuesta += cpreport2 + aux2;
+            RESULT = respuesta;
+        :}
+        | tmenor tbr tmayor CPREPORT:cpreport AUXDIV:aux{:
+            RESULT = "<br>\n" + cpreport + aux;
+        :}
+        | tmenor thr tmayor CPREPORT:cpreport AUXDIV:aux{:
+            RESULT = "<hr>\n" + cpreport + aux;
+        :}
+        | ttexto:texto CPREPORT:cpreport AUXDIV:aux{:
+            RESULT = texto + "\n" + cpreport + aux;
+        :}
+        | tmenor tdiagonal tdiv tmayor{:
+            RESULT = "</div";
+        :}
+        | error tmayor CPREPORT AUXTITULO CPREPORT AUXDIV{:
+            RESULT = "";
+        :}
+        | error tmayor CPREPORT AUXTABLA CPREPORT AUXDIV{:
+            RESULT = "";
+        :}
+        | error tmayor CPREPORT AUXDIV CPREPORT AUXDIV{:
+            RESULT = "";
+        :}
+        | error tmayor CPREPORT AUXPARRAFO CPREPORT AUXDIV{:
+            RESULT = "";
+        :}
+        | error CPREPORT AUXDIV{:
+            RESULT = "";
+        :}
+        | error tdiv tmayor{:
+            RESULT = "";
+        :};
+
+AUXPARRAFO ::= tmenor ttitulo:tit AUXETIQUETA:auxetiqueta tmayor CPREPORT:cpreport1 AUXTITULO:aux CPREPORT:cpreport2 AUXPARRAFO:aux2{:
+                String respuesta = "<" + tit + " ";
+                String background = "";
+                String font = "";
+                String align = "";
+                String textcolor = "";
+                String auxetiquetas[] = auxetiqueta.split("-");
+                for(int i = 0; i < auxetiquetas.length; i++){
+                    if(auxetiquetas[i].contains("background")){
+                        background = auxetiquetas[i];
+                    }else if(auxetiquetas[i].contains("face")){
+                        font = auxetiquetas[i];
+                    }else if(auxetiquetas[i].contains("align")){
+                        align = auxetiquetas[i];
+                    }else if(auxetiquetas[i].contains("=")){
+                        textcolor = auxetiquetas[i];
+                    }
+                }
+                respuesta += background + " " + align + ">\n";
+                if(!font.equals("") || !textcolor.equals("")){
+                    respuesta += "<font " + font + " " + textcolor + ">\n"; 
+                }
+                respuesta += cpreport1 + aux;
+                if(!font.equals("") || !textcolor.equals("")){
+                    respuesta += "</font>\n";
+                }
+                respuesta += cpreport2 + aux2;
+                RESULT = respuesta;
+            :}
+            | tmenor ttable AUXETIQUETA:auxetiqueta tmayor CPREPORT:cpreport1 AUXTABLA:aux CPREPORT:cpreport2 AUXPARRAFO:aux2{:
+            String respuesta = "<table ";
+            String background = "";
+            String font = "";
+            String align = "";
+            String textcolor = "";
+            String auxetiquetas[] = auxetiqueta.split("-");
+            for(int i = 0; i < auxetiquetas.length; i++){
+                if(auxetiquetas[i].contains("background")){
+                    background = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("face")){
+                    font = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("align")){
+                    align = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("=")){
+                    textcolor = auxetiquetas[i];
+                }
+            }
+            respuesta += background + " " + align + ">\n";
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "<font " + font + " " + textcolor + ">\n"; 
+            }
+            respuesta += cpreport1 + aux;
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "</font>\n";
+            }
+            respuesta += cpreport2 + aux2;
+            RESULT = respuesta;
+        :}
+            | tmenor tdiv AUXETIQUETA:auxetiqueta tmayor CPREPORT:cpreport1 AUXDIV:aux CPREPORT:cpreport2 AUXPARRAFO:aux2{:
+            String respuesta = "<div ";
+            String background = "";
+            String font = "";
+            String align = "";
+            String textcolor = "";
+            String auxetiquetas[] = auxetiqueta.split("-");
+            for(int i = 0; i < auxetiquetas.length; i++){
+                if(auxetiquetas[i].contains("background")){
+                    background = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("face")){
+                    font = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("align")){
+                    align = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("=")){
+                    textcolor = auxetiquetas[i];
+                }
+            }
+            respuesta += background + " " + align + ">\n";
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "<font " + font + " " + textcolor + ">\n"; 
+            }
+            respuesta += cpreport1 + aux;
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "</font>\n";
+            }
+            respuesta += cpreport2 + aux2;
+            RESULT = respuesta;
+        :}
+            | tmenor tparrafo AUXETIQUETA:auxetiqueta tmayor CPREPORT:cpreport1 AUXPARRAFO:aux CPREPORT:cpreport2 AUXPARRAFO:aux2{:
+            String respuesta = "<p ";
+            String background = "";
+            String font = "";
+            String align = "";
+            String textcolor = "";
+            String auxetiquetas[] = auxetiqueta.split("-");
+            for(int i = 0; i < auxetiquetas.length; i++){
+                if(auxetiquetas[i].contains("background")){
+                    background = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("face")){
+                    font = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("align")){
+                    align = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("=")){
+                    textcolor = auxetiquetas[i];
+                }
+            }
+            respuesta += background + " " + align + ">\n";
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "<font " + font + " " + textcolor + ">\n"; 
+            }
+            respuesta += cpreport1 + aux;
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "</font>\n";
+            }
+            respuesta += cpreport2 + aux2;
+            RESULT = respuesta;
+        :}
+            | tmenor tbr tmayor CPREPORT:cpreport AUXPARRAFO:auxparrafo{:
+                RESULT = "<br>\n" + cpreport + auxparrafo; 
+            :}
+            | tmenor thr tmayor CPREPORT:cpreport AUXPARRAFO:aux{:
+                RESULT = "<hr>\n" + cpreport + aux;
+            :}
+            | ttexto:texto CPREPORT:cpreport AUXPARRAFO:aux{:
+                RESULT = texto + " " + cpreport + aux;
+            :}
+            | tmenor tdiagonal tparrafo tmayor{:
+                RESULT = "</p>\n";
+            :}
+            | error tmayor CPREPORT AUXTITULO CPREPORT AUXPARRAFO{:
+                RESULT = "";
+            :}
+            | error tmayor CPREPORT AUXTABLA CPREPORT AUXPARRAFO{:
+                RESULT = "";
+            :}
+            | error tmayor CPREPORT AUXDIV CPREPORT AUXPARRAFO{:
+                RESULT = "";
+            :}
+            | error tmayor CPREPORT AUXPARRAFO CPREPORT AUXPARRAFO{:
+                RESULT = "";
+            :}
+            | error CPREPORT AUXPARRAFO{:
+                RESULT = "";
+            :}
+            | error tparrafo tmayor{:
+                RESULT = "";
+            :};
+
+AUXTABLA ::= tmenor ttr AUXETIQUETA:auxetiqueta tmayor CPREPORT:cpreport1 AUXENCABEZADOSTABLA:aux CPREPORT:cpreport2 AUXTABLA:aux2{:
+            String respuesta = "<tr ";
+            String background = "";
+            String font = "";
+            String align = "";
+            String textcolor = "";
+            String auxetiquetas[] = auxetiqueta.split("-");
+            for(int i = 0; i < auxetiquetas.length; i++){
+                if(auxetiquetas[i].contains("background")){
+                    background = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("face")){
+                    font = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("align")){
+                    align = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("=")){
+                    textcolor = auxetiquetas[i];
+                }
+            }
+            respuesta += background + " " + align + ">\n";
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "<font " + font + " " + textcolor + ">\n"; 
+            }
+            respuesta += cpreport1 + aux;
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "</font>\n";
+            }
+            respuesta += cpreport2 + aux2;
+            RESULT = respuesta;
+        :}
+            | tmenor ttitulo:tit AUXETIQUETA:auxetiqueta tmayor CPREPORT:cpreport1 AUXTITULO:aux CPREPORT:cpreport2 AUXTABLA:aux2{:
+            String respuesta = "<" + tit + " ";
+            String background = "";
+            String font = "";
+            String align = "";
+            String textcolor = "";
+            String auxetiquetas[] = auxetiqueta.split("-");
+            for(int i = 0; i < auxetiquetas.length; i++){
+                if(auxetiquetas[i].contains("background")){
+                    background = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("face")){
+                    font = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("align")){
+                    align = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("=")){
+                    textcolor = auxetiquetas[i];
+                }
+            }
+            respuesta += background + " " + align + ">\n";
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "<font " + font + " " + textcolor + ">\n"; 
+            }
+            respuesta += cpreport1 + aux;
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "</font>\n";
+            }
+            respuesta += cpreport2 + aux2;
+            RESULT = respuesta;
+        :}
+            | tmenor ttable AUXETIQUETA:auxetiqueta tmayor CPREPORT:cpreport1 AUXTABLA:aux CPREPORT:cpreport2 AUXTABLA:aux2{:
+            String respuesta = "<table ";
+            String background = "";
+            String font = "";
+            String align = "";
+            String textcolor = "";
+            String auxetiquetas[] = auxetiqueta.split("-");
+            for(int i = 0; i < auxetiquetas.length; i++){
+                if(auxetiquetas[i].contains("background")){
+                    background = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("face")){
+                    font = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("align")){
+                    align = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("=")){
+                    textcolor = auxetiquetas[i];
+                }
+            }
+            respuesta += background + " " + align + ">\n";
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "<font " + font + " " + textcolor + ">\n"; 
+            }
+            respuesta += cpreport1 + aux;
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "</font>\n";
+            }
+            respuesta += cpreport2 + aux2;
+            RESULT = respuesta;
+        :}
+            | tmenor tdiv AUXETIQUETA:auxetiqueta tmayor CPREPORT:cpreport1 AUXDIV:aux CPREPORT:cpreport2 AUXTABLA:aux2{:
+            String respuesta = "<div ";
+            String background = "";
+            String font = "";
+            String align = "";
+            String textcolor = "";
+            String auxetiquetas[] = auxetiqueta.split("-");
+            for(int i = 0; i < auxetiquetas.length; i++){
+                if(auxetiquetas[i].contains("background")){
+                    background = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("face")){
+                    font = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("align")){
+                    align = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("=")){
+                    textcolor = auxetiquetas[i];
+                }
+            }
+            respuesta += background + " " + align + ">\n";
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "<font " + font + " " + textcolor + ">\n"; 
+            }
+            respuesta += cpreport1 + aux;
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "</font>\n";
+            }
+            respuesta += cpreport2 + aux2;
+            RESULT = respuesta;
+        :}
+            | tmenor tparrafo AUXETIQUETA:auxetiqueta tmayor CPREPORT:cpreport1 AUXPARRAFO:aux CPREPORT:cpreport2 AUXTABLA:aux2{:
+            String respuesta = "<p ";
+            String background = "";
+            String font = "";
+            String align = "";
+            String textcolor = "";
+            String auxetiquetas[] = auxetiqueta.split("-");
+            for(int i = 0; i < auxetiquetas.length; i++){
+                if(auxetiquetas[i].contains("background")){
+                    background = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("face")){
+                    font = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("align")){
+                    align = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("=")){
+                    textcolor = auxetiquetas[i];
+                }
+            }
+            respuesta += background + " " + align + ">\n";
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "<font " + font + " " + textcolor + ">\n"; 
+            }
+            respuesta += cpreport1 + aux;
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "</font>\n";
+            }
+            respuesta += cpreport2 + aux2;
+            RESULT = respuesta;
+        :}
+            | tmenor tbr tmayor CPREPORT:cpreport AUXTABLA:aux{:
+                RESULT = "<br>\n" + cpreport + aux;
+            :}
+            | tmenor thr tmayor CPREPORT:cp AUXTABLA:aux{:
+                RESULT = "<th>\n" + cp + aux;
+            :}
+            | ttexto:texto CPREPORT:cp AUXTABLA:aux{:
+                RESULT = texto + " " + cp + " " + aux;
+            :}
+            | tmenor tdiagonal ttable tmayor{:
+                RESULT = "</table>\n";
+            :}
+            | error tmayor CPREPORT AUXENCABEZADOSTABLA CPREPORT AUXTABLA{:
+                RESULT = "";
+            :}
+            | error tmayor CPREPORT AUXTITULO CPREPORT AUXTABLA{:
+                RESULT = "";
+            :}
+            | error tmayor CPREPORT AUXTABLA CPREPORT AUXTABLA{:
+                RESULT = "";
+            :}
+            | error tmayor CPREPORT AUXDIV CPREPORT AUXTABLA{:
+                RESULT = "";
+            :}
+            | error tmayor CPREPORT AUXPARRAFO CPREPORT AUXTABLA{:
+                RESULT = "";
+            :}
+            | error CPREPORT AUXTABLA{:
+                RESULT = "";
+            :}
+            | error ttable tmayor{:
+                RESULT = "";
+            :};
+
+AUXENCABEZADOSTABLA ::= tmenor tth AUXETIQUETA:auxetiqueta tmayor CPREPORT:cpreport1 ENCABEZADOS:aux CPREPORT:cpreport2 AUXENCABEZADOSTABLA:aux2{:
+            String respuesta = "<th ";
+            String background = "";
+            String font = "";
+            String align = "";
+            String textcolor = "";
+            String auxetiquetas[] = auxetiqueta.split("-");
+            for(int i = 0; i < auxetiquetas.length; i++){
+                if(auxetiquetas[i].contains("background")){
+                    background = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("face")){
+                    font = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("align")){
+                    align = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("=")){
+                    textcolor = auxetiquetas[i];
+                }
+            }
+            respuesta += background + " " + align + ">\n";
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "<font " + font + " " + textcolor + ">\n"; 
+            }
+            respuesta += cpreport1 + aux;
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "</font>\n";
+            }
+            respuesta += cpreport2 + aux2;
+            RESULT = respuesta;
+        :}
+                    | tmenor ttd AUXETIQUETA:auxetiqueta tmayor CPREPORT:cpreport1 TABLA:aux CPREPORT:cpreport2 AUXENCABEZADOSTABLA:aux2{:
+            String respuesta = "<td ";
+            String background = "";
+            String font = "";
+            String align = "";
+            String textcolor = "";
+            String auxetiquetas[] = auxetiqueta.split("-");
+            for(int i = 0; i < auxetiquetas.length; i++){
+                if(auxetiquetas[i].contains("background")){
+                    background = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("face")){
+                    font = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("align")){
+                    align = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("=")){
+                    textcolor = auxetiquetas[i];
+                }
+            }
+            respuesta += background + " " + align + ">\n";
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "<font " + font + " " + textcolor + ">\n"; 
+            }
+            respuesta += cpreport1 + aux;
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "</font>\n";
+            }
+            respuesta += cpreport2 + aux2;
+            RESULT = respuesta;
+        :}
+                    | tmenor ttitulo:tit AUXETIQUETA:auxetiqueta tmayor CPREPORT:cpreport1 AUXTITULO:aux CPREPORT:cpreport2 AUXENCABEZADOSTABLA:aux2{:
+            String respuesta = "<" + tit + " ";
+            String background = "";
+            String font = "";
+            String align = "";
+            String textcolor = "";
+            String auxetiquetas[] = auxetiqueta.split("-");
+            for(int i = 0; i < auxetiquetas.length; i++){
+                if(auxetiquetas[i].contains("background")){
+                    background = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("face")){
+                    font = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("align")){
+                    align = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("=")){
+                    textcolor = auxetiquetas[i];
+                }
+            }
+            respuesta += background + " " + align + ">\n";
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "<font " + font + " " + textcolor + ">\n"; 
+            }
+            respuesta += cpreport1 + aux;
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "</font>\n";
+            }
+            respuesta += cpreport2 + aux2;
+            RESULT = respuesta;
+        :}
+                    | tmenor ttable AUXETIQUETA:auxetiqueta tmayor CPREPORT:cpreport1 AUXTABLA:aux CPREPORT:cpreport2 AUXENCABEZADOSTABLA:aux2{:
+            String respuesta = "<table ";
+            String background = "";
+            String font = "";
+            String align = "";
+            String textcolor = "";
+            String auxetiquetas[] = auxetiqueta.split("-");
+            for(int i = 0; i < auxetiquetas.length; i++){
+                if(auxetiquetas[i].contains("background")){
+                    background = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("face")){
+                    font = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("align")){
+                    align = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("=")){
+                    textcolor = auxetiquetas[i];
+                }
+            }
+            respuesta += background + " " + align + ">\n";
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "<font " + font + " " + textcolor + ">\n"; 
+            }
+            respuesta += cpreport1 + aux;
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "</font>\n";
+            }
+            respuesta += cpreport2 + aux2;
+            RESULT = respuesta;
+        :}
+                    | tmenor tdiv AUXETIQUETA:auxetiqueta tmayor CPREPORT:cpreport1 AUXDIV:aux CPREPORT:cpreport2 AUXENCABEZADOSTABLA:aux2{:
+            String respuesta = "<div ";
+            String background = "";
+            String font = "";
+            String align = "";
+            String textcolor = "";
+            String auxetiquetas[] = auxetiqueta.split("-");
+            for(int i = 0; i < auxetiquetas.length; i++){
+                if(auxetiquetas[i].contains("background")){
+                    background = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("face")){
+                    font = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("align")){
+                    align = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("=")){
+                    textcolor = auxetiquetas[i];
+                }
+            }
+            respuesta += background + " " + align + ">\n";
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "<font " + font + " " + textcolor + ">\n"; 
+            }
+            respuesta += cpreport1 + aux;
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "</font>\n";
+            }
+            respuesta += cpreport2 + aux2;
+            RESULT = respuesta;
+        :}
+                    | tmenor tparrafo AUXETIQUETA:auxetiqueta tmayor CPREPORT:cpreport1 AUXPARRAFO:aux CPREPORT:cpreport2 AUXENCABEZADOSTABLA:aux2{:
+            String respuesta = "<p ";
+            String background = "";
+            String font = "";
+            String align = "";
+            String textcolor = "";
+            String auxetiquetas[] = auxetiqueta.split("-");
+            for(int i = 0; i < auxetiquetas.length; i++){
+                if(auxetiquetas[i].contains("background")){
+                    background = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("face")){
+                    font = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("align")){
+                    align = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("=")){
+                    textcolor = auxetiquetas[i];
+                }
+            }
+            respuesta += background + " " + align + ">\n";
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "<font " + font + " " + textcolor + ">\n"; 
+            }
+            respuesta += cpreport1 + aux;
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "</font>\n";
+            }
+            respuesta += cpreport2 + aux2;
+            RESULT = respuesta;
+        :}
+                    | tmenor tbr tmayor CPREPORT:cp AUXENCABEZADOSTABLA:aux{:
+                        RESULT = "<br>\n" + cp + aux;
+                    :}
+                    | tmenor thr tmayor CPREPORT:cp AUXENCABEZADOSTABLA:aux{:
+                        RESULT = "<hr>\n" + cp + aux;
+                    :}
+                    | ttexto:texto CPREPORT:cp AUXENCABEZADOSTABLA:aux{:
+                        RESULT = texto + " " + cp + aux;
+                    :}
+                    | tmenor tdiagonal ttr tmayor{:
+                        RESULT = "</tr>\n";
+                    :}
+                    | error tmayor CPREPORT ENCABEZADOS CPREPORT AUXENCABEZADOSTABLA{:
+                        RESULT = "";
+                    :}
+                    | error tmayor CPREPORT TABLA CPREPORT AUXENCABEZADOSTABLA{:
+                        RESULT = "";
+                    :}
+                    | error tmayor CPREPORT AUXTITULO CPREPORT AUXENCABEZADOSTABLA{:
+                        RESULT = "";
+                    :}
+                    | error tmayor CPREPORT AUXTABLA CPREPORT AUXENCABEZADOSTABLA{:
+                        RESULT = "";
+                    :}
+                    | error tmayor CPREPORT AUXDIV CPREPORT AUXENCABEZADOSTABLA{:
+                        RESULT = "";
+                    :}
+                    | error tmayor CPREPORT AUXPARRAFO CPREPORT AUXENCABEZADOSTABLA{:
+                        RESULT = "";
+                    :}
+                    | error CPREPORT AUXENCABEZADOSTABLA{:
+                        RESULT = "";
+                    :}
+                    | error ttr tmayor{:
+                        RESULT = "";
+                    :};
+
+ENCABEZADOS ::= tmenor ttitulo:tit AUXETIQUETA:auxetiqueta tmayor CPREPORT:cpreport1 AUXTITULO:aux CPREPORT:cpreport2 ENCABEZADOS:aux2{:
+            String respuesta = "<" + tit + " ";
+            String background = "";
+            String font = "";
+            String align = "";
+            String textcolor = "";
+            String auxetiquetas[] = auxetiqueta.split("-");
+            for(int i = 0; i < auxetiquetas.length; i++){
+                if(auxetiquetas[i].contains("background")){
+                    background = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("face")){
+                    font = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("align")){
+                    align = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("=")){
+                    textcolor = auxetiquetas[i];
+                }
+            }
+            respuesta += background + " " + align + ">\n";
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "<font " + font + " " + textcolor + ">\n"; 
+            }
+            respuesta += cpreport1 + aux;
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "</font>\n";
+            }
+            respuesta += cpreport2 + aux2;
+            RESULT = respuesta;
+        :}
+            | tmenor ttable AUXETIQUETA:auxetiqueta tmayor CPREPORT:cpreport1 AUXTABLA:aux CPREPORT:cpreport2 ENCABEZADOS:aux2{:
+            String respuesta = "<table ";
+            String background = "";
+            String font = "";
+            String align = "";
+            String textcolor = "";
+            String auxetiquetas[] = auxetiqueta.split("-");
+            for(int i = 0; i < auxetiquetas.length; i++){
+                if(auxetiquetas[i].contains("background")){
+                    background = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("face")){
+                    font = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("align")){
+                    align = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("=")){
+                    textcolor = auxetiquetas[i];
+                }
+            }
+            respuesta += background + " " + align + ">\n";
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "<font " + font + " " + textcolor + ">\n"; 
+            }
+            respuesta += cpreport1 + aux;
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "</font>\n";
+            }
+            respuesta += cpreport2 + aux2;
+            RESULT = respuesta;
+        :}
+            | tmenor tdiv AUXETIQUETA:auxetiqueta tmayor CPREPORT:cpreport1 AUXDIV:aux CPREPORT:cpreport2 ENCABEZADOS:aux2{:
+            String respuesta = "<div ";
+            String background = "";
+            String font = "";
+            String align = "";
+            String textcolor = "";
+            String auxetiquetas[] = auxetiqueta.split("-");
+            for(int i = 0; i < auxetiquetas.length; i++){
+                if(auxetiquetas[i].contains("background")){
+                    background = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("face")){
+                    font = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("align")){
+                    align = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("=")){
+                    textcolor = auxetiquetas[i];
+                }
+            }
+            respuesta += background + " " + align + ">\n";
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "<font " + font + " " + textcolor + ">\n"; 
+            }
+            respuesta += cpreport1 + aux;
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "</font>\n";
+            }
+            respuesta += cpreport2 + aux2;
+            RESULT = respuesta;
+        :}
+            | tmenor tparrafo AUXETIQUETA:auxetiqueta tmayor CPREPORT:cpreport1 AUXPARRAFO:aux CPREPORT:cpreport2 ENCABEZADOS:aux2{:
+            String respuesta = "<p ";
+            String background = "";
+            String font = "";
+            String align = "";
+            String textcolor = "";
+            String auxetiquetas[] = auxetiqueta.split("-");
+            for(int i = 0; i < auxetiquetas.length; i++){
+                if(auxetiquetas[i].contains("background")){
+                    background = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("face")){
+                    font = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("align")){
+                    align = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("=")){
+                    textcolor = auxetiquetas[i];
+                }
+            }
+            respuesta += background + " " + align + ">\n";
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "<font " + font + " " + textcolor + ">\n"; 
+            }
+            respuesta += cpreport1 + aux;
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "</font>\n";
+            }
+            respuesta += cpreport2 + aux2;
+            RESULT = respuesta;
+        :}
+            | tmenor tbr tmayor CPREPORT:cp ENCABEZADOS:aux{:
+                RESULT = "<br>\n" + cp + aux;
+            :}
+            | tmenor thr tmayor CPREPORT:cp ENCABEZADOS:aux{:
+                RESULT = "<th\n>" + cp + aux;
+            :}
+            | ttexto:texto CPREPORT:cp ENCABEZADOS:aux{:
+                RESULT = texto + " " + cp + aux;
+            :}
+            | tmenor tdiagonal tth tmayor{:
+                RESULT = "";
+            :}
+            | error tmayor CPREPORT AUXTITULO CPREPORT ENCABEZADOS{:
+                RESULT = "";
+            :}
+            | error tmayor CPREPORT AUXTABLA CPREPORT ENCABEZADOS{:
+                RESULT = "";
+            :}
+            | error tmayor CPREPORT AUXDIV CPREPORT ENCABEZADOS{:
+                RESULT = "";
+            :}
+            | error tmayor CPREPORT AUXPARRAFO CPREPORT ENCABEZADOS{:
+                RESULT = "";
+            :}
+            | error CPREPORT ENCABEZADOS{:
+                RESULT = "";
+            :}
+            | error tth tmayor{:
+                RESULT = "";
+            :};
+
+TABLA ::=  tmenor ttitulo:tit AUXETIQUETA:auxetiqueta tmayor CPREPORT:cpreport1 AUXTITULO:aux CPREPORT:cpreport2 TABLA:aux2{:
+            String respuesta = "<" + tit + " ";
+            String background = "";
+            String font = "";
+            String align = "";
+            String textcolor = "";
+            String auxetiquetas[] = auxetiqueta.split("-");
+            for(int i = 0; i < auxetiquetas.length; i++){
+                if(auxetiquetas[i].contains("background")){
+                    background = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("face")){
+                    font = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("align")){
+                    align = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("=")){
+                    textcolor = auxetiquetas[i];
+                }
+            }
+            respuesta += background + " " + align + ">\n";
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "<font " + font + " " + textcolor + ">\n"; 
+            }
+            respuesta += cpreport1 + aux;
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "</font>\n";
+            }
+            respuesta += cpreport2 + aux2;
+            RESULT = respuesta;
+        :}
+        | tmenor ttable AUXETIQUETA:auxetiqueta tmayor CPREPORT:cpreport1 AUXTABLA:aux CPREPORT:cpreport2 TABLA:aux2{:
+            String respuesta = "<table ";
+            String background = "";
+            String font = "";
+            String align = "";
+            String textcolor = "";
+            String auxetiquetas[] = auxetiqueta.split("-");
+            for(int i = 0; i < auxetiquetas.length; i++){
+                if(auxetiquetas[i].contains("background")){
+                    background = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("face")){
+                    font = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("align")){
+                    align = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("=")){
+                    textcolor = auxetiquetas[i];
+                }
+            }
+            respuesta += background + " " + align + ">\n";
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "<font " + font + " " + textcolor + ">\n"; 
+            }
+            respuesta += cpreport1 + aux;
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "</font>\n";
+            }
+            respuesta += cpreport2 + aux2;
+            RESULT = respuesta;
+        :}
+        | tmenor tdiv AUXETIQUETA:auxetiqueta tmayor CPREPORT:cpreport1 AUXDIV:aux CPREPORT:cpreport2 TABLA:aux2{:
+            String respuesta = "<div ";
+            String background = "";
+            String font = "";
+            String align = "";
+            String textcolor = "";
+            String auxetiquetas[] = auxetiqueta.split("-");
+            for(int i = 0; i < auxetiquetas.length; i++){
+                if(auxetiquetas[i].contains("background")){
+                    background = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("face")){
+                    font = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("align")){
+                    align = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("=")){
+                    textcolor = auxetiquetas[i];
+                }
+            }
+            respuesta += background + " " + align + ">\n";
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "<font " + font + " " + textcolor + ">\n"; 
+            }
+            respuesta += cpreport1 + aux;
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "</font>\n";
+            }
+            respuesta += cpreport2 + aux2;
+            RESULT = respuesta;
+        :}
+        | tmenor tparrafo AUXETIQUETA:auxetiqueta tmayor CPREPORT:cpreport1 AUXPARRAFO:aux CPREPORT:cpreport2 TABLA:aux2{:
+            String respuesta = "<p ";
+            String background = "";
+            String font = "";
+            String align = "";
+            String textcolor = "";
+            String auxetiquetas[] = auxetiqueta.split("-");
+            for(int i = 0; i < auxetiquetas.length; i++){
+                if(auxetiquetas[i].contains("background")){
+                    background = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("face")){
+                    font = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("align")){
+                    align = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("=")){
+                    textcolor = auxetiquetas[i];
+                }
+            }
+            respuesta += background + " " + align + ">\n";
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "<font " + font + " " + textcolor + ">\n"; 
+            }
+            respuesta += cpreport1 + aux;
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "</font>\n";
+            }
+            respuesta += cpreport2 + aux2;
+            RESULT = respuesta;
+        :}
+        | tmenor tbr tmayor CPREPORT:cp TABLA:aux{:RESULT = "<br>\n" + cp + aux;:}
+        | tmenor thr tmayor CPREPORT:cp TABLA:aux{:RESULT = "<hr>\n" + cp + aux;:}
+        | ttexto:texto CPREPORT:cp TABLA:aux{:RESULT = texto + " " + cp + aux;:}
+        | tmenor tdiagonal ttd tmayor{:RESULT = "</td>\n";:}
+        | error tmayor CPREPORT AUXTITULO CPREPORT TABLA{:RESULT = "";:}
+        | error tmayor CPREPORT AUXTABLA CPREPORT TABLA{:RESULT = "";:}
+        | error tmayor CPREPORT AUXDIV CPREPORT TABLA{:RESULT = "";:}
+        | error tmayor CPREPORT AUXPARRAFO CPREPORT TABLA{:RESULT = "";:}
+        | error CPREPORT TABLA{:RESULT = "";:}
+        | error ttd tmayor{:RESULT = "";:};
+
+AUXTITULO ::= tmenor ttitulo:tit AUXETIQUETA:auxetiqueta tmayor CPREPORT:cpreport1 AUXTITULO:aux CPREPORT:cpreport2 AUXTITULO:aux2{:
+            String respuesta = "<" + tit + " ";
+            String background = "";
+            String font = "";
+            String align = "";
+            String textcolor = "";
+            String auxetiquetas[] = auxetiqueta.split("-");
+            for(int i = 0; i < auxetiquetas.length; i++){
+                if(auxetiquetas[i].contains("background")){
+                    background = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("face")){
+                    font = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("align")){
+                    align = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("=")){
+                    textcolor = auxetiquetas[i];
+                }
+            }
+            respuesta += background + " " + align + ">\n";
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "<font " + font + " " + textcolor + ">\n"; 
+            }
+            respuesta += cpreport1 + aux;
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "</font>\n";
+            }
+            respuesta += cpreport2 + aux2;
+            RESULT = respuesta;
+        :}
+            | tmenor ttable AUXETIQUETA:auxetiqueta tmayor CPREPORT:cpreport1 AUXTABLA:aux CPREPORT:cpreport2 AUXTITULO:aux2{:
+            String respuesta = "<table ";
+            String background = "";
+            String font = "";
+            String align = "";
+            String textcolor = "";
+            String auxetiquetas[] = auxetiqueta.split("-");
+            for(int i = 0; i < auxetiquetas.length; i++){
+                if(auxetiquetas[i].contains("background")){
+                    background = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("face")){
+                    font = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("align")){
+                    align = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("=")){
+                    textcolor = auxetiquetas[i];
+                }
+            }
+            respuesta += background + " " + align + ">\n";
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "<font " + font + " " + textcolor + ">\n"; 
+            }
+            respuesta += cpreport1 + aux;
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "</font>\n";
+            }
+            respuesta += cpreport2 + aux2;
+            RESULT = respuesta;
+        :}
+            | tmenor tdiv AUXETIQUETA:auxetiqueta tmayor CPREPORT:cpreport1 AUXDIV:aux CPREPORT:cpreport2 AUXTITULO:aux2{:
+            String respuesta = "<div ";
+            String background = "";
+            String font = "";
+            String align = "";
+            String textcolor = "";
+            String auxetiquetas[] = auxetiqueta.split("-");
+            for(int i = 0; i < auxetiquetas.length; i++){
+                if(auxetiquetas[i].contains("background")){
+                    background = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("face")){
+                    font = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("align")){
+                    align = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("=")){
+                    textcolor = auxetiquetas[i];
+                }
+            }
+            respuesta += background + " " + align + ">\n";
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "<font " + font + " " + textcolor + ">\n"; 
+            }
+            respuesta += cpreport1 + aux;
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "</font>\n";
+            }
+            respuesta += cpreport2 + aux2;
+            RESULT = respuesta;
+        :}
+            | tmenor tparrafo AUXETIQUETA:auxetiqueta tmayor CPREPORT:cpreport1 AUXPARRAFO:aux CPREPORT:cpreport2 AUXTITULO:aux2{:
+            String respuesta = "<p ";
+            String background = "";
+            String font = "";
+            String align = "";
+            String textcolor = "";
+            String auxetiquetas[] = auxetiqueta.split("-");
+            for(int i = 0; i < auxetiquetas.length; i++){
+                if(auxetiquetas[i].contains("background")){
+                    background = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("face")){
+                    font = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("align")){
+                    align = auxetiquetas[i];
+                }else if(auxetiquetas[i].contains("=")){
+                    textcolor = auxetiquetas[i];
+                }
+            }
+            respuesta += background + " " + align + ">\n";
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "<font " + font + " " + textcolor + ">\n"; 
+            }
+            respuesta += cpreport1 + aux;
+            if(!font.equals("") || !textcolor.equals("")){
+                respuesta += "</font>\n";
+            }
+            respuesta += cpreport2 + aux2;
+            RESULT = respuesta;
+        :}
+            | tmenor tbr tmayor CPREPORT:cp AUXTITULO:aux{:RESULT = "<br>\n" + cp + aux;:}
+            | tmenor thr tmayor CPREPORT:cp AUXTITULO:aux{:RESULT = "<hr>\n" + cp + aux;:}
+            | ttexto:texto CPREPORT:cp AUXTITULO:aux{:RESULT = texto + " " + cp + aux;:}
+            | tmenor tdiagonal ttitulo:tit tmayor{:RESULT = "</" + tit + ">";:}
+            | error tmayor CPREPORT AUXTITULO CPREPORT AUXTITULO{:RESULT = "";:}
+            | error tmayor CPREPORT AUXTABLA CPREPORT AUXTITULO{:RESULT = "";:}
+            | error tmayor CPREPORT AUXDIV CPREPORT AUXTITULO{:RESULT = "";:}
+            | error tmayor CPREPORT AUXPARRAFO CPREPORT AUXTITULO{:RESULT = "";:}
+            | error CPREPORT AUXTITULO{:RESULT = "";:}
+            | error ttitulo tmayor{:RESULT = "";:};
+            
+AUXETIQUETA ::= tcolor:aux tasignar tcadena:cadena AUXETIQUETA:auxetiqueta{:
+                if(!yahaycolor){
+                    if(!DevolverBGColor(cadena).equals("error")){
+                        RESULT = DevolverBGColor(cadena) + "-" + auxetiqueta;
+                    }else{
+                        RESULT = "";
+                        /*ERROR SEMANTICO*/
+                        Ventana.errores.add("Semantico-Valor " + cadena + " no es aceptado como color de fondo.-" + String.valueOf((cadenaleft + 1)) + "-" + String.valueOf((cadenaright+1)));
+                    }
+                    yahaycolor = true;
+                }else{
+                    /*ERROR SEMANTICO*/
+                    Ventana.errores.add("Semantico-Ya se encuentra en uso el atributo: " + aux + ", en la etiqueta actual.-" + String.valueOf((auxleft + 1)) + "-" + String.valueOf((auxright+1)));
+                    RESULT = "";
+                }
+            :}
+            | talign:aux tasignar tcadena:cadena AUXETIQUETA:auxetiqueta{:
+                if(!yahayalign){
+                    cadena = cadena.replace("\"", "");
+                    if(cadena.equalsIgnoreCase("izquierda")){
+                        RESULT = "align = left;" + "-" + auxetiqueta;
+                    }else if(cadena.equalsIgnoreCase("derecha")){
+                        RESULT = "align = right;" + "-" + auxetiqueta;
+                    }else if(cadena.equalsIgnoreCase("centrado")){
+                        RESULT = "align = center;" + "-" + auxetiqueta;
+                    }else{
+                        RESULT = "";
+                        /*ERROR SEMANTICO*/
+                        Ventana.errores.add("Semantico-Valor " + cadena + " no es aceptado como una alineacion correcta.-" + String.valueOf((cadenaleft + 1)) + "-" + String.valueOf((cadenaright+1)));
+                    }
+                    yahayalign = true;
+                }else{
+                    /*ERROR SEMANTICO*/
+                    Ventana.errores.add("Semantico-Ya se encuentra en uso el atributo: " + aux + ", en la etiqueta actual.-" + String.valueOf((auxleft+ 1)) + "-" + String.valueOf((auxright+1)));
+                    RESULT = "";
+                }
+            :}
+            | tfont:aux tasignar tcadena:cadena AUXETIQUETA:auxetiqueta{:
+                if(!yahayfont){
+                    cadena = cadena.replace("\"", "");
+                    if(cadena.equalsIgnoreCase("Agency FB") || cadena.equalsIgnoreCase("Antiqua") || cadena.equalsIgnoreCase("Architect") || cadena.equalsIgnoreCase("Arial") || cadena.equalsIgnoreCase("BankFuturistic")){
+                        RESULT = "face:\"" + cadena + "\"-" + auxetiqueta;
+                    }else if(cadena.equalsIgnoreCase("BankGothic") || cadena.equalsIgnoreCase("Blackletter") || cadena.equalsIgnoreCase("Calibri") || cadena.equalsIgnoreCase("Comic Sans") || cadena.equalsIgnoreCase("Courier")){
+                        RESULT = "face:\"" + cadena + "\"-" + auxetiqueta;
+                    }else if(cadena.equalsIgnoreCase("Cursiva") || cadena.equalsIgnoreCase("Decorativa") || cadena.equalsIgnoreCase("Fantasia") || cadena.equalsIgnoreCase("Fraktur") || cadena.equalsIgnoreCase("Frosty")){
+                        RESULT = "face:\"" + cadena + "\"-" + auxetiqueta;
+                    }else if(cadena.equalsIgnoreCase("Garamond") || cadena.equalsIgnoreCase("Georgia") || cadena.equalsIgnoreCase("Helvetica") || cadena.equalsIgnoreCase("Impact") || cadena.equalsIgnoreCase("Minion")){
+                        RESULT = "face:\"" + cadena + "\"-" + auxetiqueta;
+                    }else if(cadena.equalsIgnoreCase("Modern") || cadena.equalsIgnoreCase("Monoespaciado") || cadena.equalsIgnoreCase("Palatino") || cadena.equalsIgnoreCase("Romana") || cadena.equalsIgnoreCase("Palo seco")){
+                        RESULT = "face:\"" + cadena + "\"-" + auxetiqueta;
+                    }else if(cadena.equalsIgnoreCase("Gracia") || cadena.equalsIgnoreCase("Script") || cadena.equalsIgnoreCase("Suiza") || cadena.equalsIgnoreCase("Times") || cadena.equalsIgnoreCase("Times New Roman")){
+                        RESULT = "face:\"" + cadena + "\"-" + auxetiqueta;
+                    }else if(cadena.equalsIgnoreCase("Tw Cen MT") || cadena.equalsIgnoreCase("Verdana")){
+                        RESULT = "face:\"" + cadena + "\"-" + auxetiqueta;
+                    }else{
+                        RESULT = "";
+                        /*ERROR SEMANTICO*/
+                        Ventana.errores.add("Semantico-Valor " + cadena + " no es aceptado como tipo de letra.-" + String.valueOf((cadenaleft + 1)) + "-" + String.valueOf((cadenaright+1)));
+                    }
+                    yahayfont = true;
+                }else{
+                    /*ERROR SEMANTICO*/
+                    Ventana.errores.add("Semantico-Ya se encuentra en uso el atributo: " + aux + ", en la etiqueta actual.-" + String.valueOf((auxleft+ 1)) + "-" + String.valueOf((auxright+1)));
+                    RESULT = "";
+                }
+            :}
+            | ttextcolor:aux tasignar tcadena:cadena AUXETIQUETA:auxetiqueta{:
+                if(!yahaytextcolor){
+                    if(!DevolverColor("textcolor", cadena).equals("error")){
+                        RESULT = DevolverColor("textcolor", cadena) + auxetiqueta;
+                    }else{
+                        RESULT = "";
+                        /*ERROR SEMANTICO*/
+                        Ventana.errores.add("Semantico-Valor " + cadena + " no es aceptado como color de texto.-" + String.valueOf((cadenaleft + 1)) + "-" + String.valueOf((cadenaright+1)));
+                    }
+                    yahaytextcolor = true;
+                }else{
+                    /*ERROR SEMANTICO*/
+                    Ventana.errores.add("Semantico-Ya se encuentra en uso el atributo: " + aux + ", en la etiqueta actual.-" + String.valueOf((auxleft+ 1)) + "-" + String.valueOf((auxright+1)));
+                    RESULT = "";
+                }
+            :}
+            | {:
+                RESULT = "";
+                yahaycolor = false;
+                yahayalign = false;
+                yahayfont = false;
+                yahaytextcolor = false;
+            :}
+            | error AUXETIQUETA:auxetiqueta{:
+                RESULT = auxetiqueta;
+            :};
+
+CPREPORT ::= tiniciocpreport LSENTENCIASCPREPORT:sentencias tiniciocpreport CPREPORT:cpr{:
+                RESULT = sentencias + cpr;
+            :}
+            | {:
+                RESULT = "";
+            :};
+
+LSENTENCIASCPREPORT ::= DECLARACION LSENTENCIASCPREPORT:aux
+                    {:
+                        RESULT = aux;
+                    :}
+                    | ASIGNACION LSENTENCIASCPREPORT:aux
+                    {:
+                        RESULT = aux;
+                    :}
+                    | tcomentario LSENTENCIASCPREPORT:aux
+                    {:
+                        RESULT = aux;
+                    :}
+                    | tcomentariomulti LSENTENCIASCPREPORT:aux
+                    {:
+                        RESULT = aux;
+                    :}
+                    | PRINT:print LSENTENCIASCPREPORT:aux
+                    {:
+                        RESULT = print + "\n" + aux;
+                    :}
+                    | RESULTA tpuntoycoma LSENTENCIASCPREPORT:aux
+                    {:
+                        RESULT = aux;
+                    :}
+                    | {:RESULT = "";:}
+                    | error tpuntoycoma LSENTENCIASCPREPORT:aux{:
+                        RESULT = aux;
+                    :}
+                    | error LSENTENCIASCPREPORT:aux{:
+                        RESULT = aux;
+                    :};
+
+DECLARACION ::= TIPO:tipo LID:lid tpuntoycoma{:
+                for(int i = 0; i < lid.size(); i++){
+                    if(!ExisteVariable(lid.get(i))){
+                        if(lid.get(i).getValor() != null){
+                            if(lid.get(i).getValor().getTipo().equals(tipo)){
+                                lid.get(i).setTipo(tipo);
+                                variables.add(lid.get(i));
+                            }else if(tipo.equals("booleano") && (lid.get(i).getValor().getTipo().equals("entero") && (lid.get(i).getValor().getValor().equals("1") || lid.get(i).getValor().getValor().equals("0")))){
+                                if(lid.get(i).getValor().getValor().equals("1")){
+                                    lid.get(i).getValor().setValor("true");
+                                    lid.get(i).getValor().setTipo("booleano");
+                                    lid.get(i).setTipo(tipo);
+                                    variables.add(lid.get(i));
+                                }else{
+                                    lid.get(i).getValor().setValor("false");
+                                    lid.get(i).getValor().setTipo("booleano");
+                                    lid.get(i).setTipo(tipo);
+                                    variables.add(lid.get(i));
+                                }
+                            }else{
+                                /*ERROR SEMANTICO*/
+                                lid.get(i).setValor(null);
+                                variables.add(lid.get(i));
+                                Ventana.errores.add("Semantico-Error de tipos. No se puede convertir de: " + lid.get(i).getValor().getTipo() + " en " + tipo + "-" + String.valueOf(tipoleft) + "-" + String.valueOf(tiporight)); 
+                            }
+                        }else{
+                            lid.get(i).setTipo(tipo);
+                            variables.add(lid.get(i));
+                        }
+                    }else{
+                        Ventana.errores.add("Semantico-La variable: " + lid.get(i).getNombre() + ", ya fue declarada.-" + String.valueOf(tipoleft) + "-" + String.valueOf(tiporight));
+                    }
+                }
+                RESULT = "";
+            :};
+
+TIPO ::= tint{:RESULT = "entero";:}
+    | tchar{:RESULT = "caracter";:}
+    | tfloat{:RESULT = "decimal";:}
+    | tstring{:RESULT = "cadena";:}
+    | tboolean{:RESULT = "booleano";:};
+
+PRINT ::= tprint tparentesisabrir EXP:exp tparentesiscerrar tpuntoycoma{:
+            //System.out.println("exp " + exp.getTipo() + " " + exp.getValor());
+            if(!exp.getTipo().equals("error")){
+                Ventana.impresion.add(exp.getValor());
+                RESULT = exp.getValor();
+            }else{
+                RESULT = "";
+            }
+        :};
+
+RESULTA ::= tresult:aux tpunto AUXRESULT:auxresult{:
+            if(VerificarDatosResult()){
+                //System.out.println("result == new result");
+                /*Error semantico*/
+                Ventana.errores.add("Semantico-El array de resultado \"Result\" se encuentra vacio-" + String.valueOf(auxleft) + "-" + String.valueOf(auxright));
+                RESULT = "error";
+            }else{
+                //System.out.println("result != new result");
+                if(auxresult.equals("score")){
+                    RESULT = "score:" + String.valueOf(datosresult.getScore());
+                }else{
+                    RESULT = auxresult;
+                }
+            }
+        :};
+
+AUXRESULT ::= tscore{:
+                RESULT = "score";
+            :}
+            | tvariables tcorcheteabrir EXP:exp tcorchetecerrar tpunto ATRIBUTOSVARIABLES:aux{:
+                if(!VerificarDatosResult()){
+                    if(exp.getTipo().equals("entero")){
+                        int auxexp = Integer.parseInt(exp.getValor());
+                        if(auxexp >= 0 && auxexp < datosresult.getVariables().size()){
+                            if(aux.equals("nombre")){
+                                RESULT = datosresult.getVariables().get(auxexp).getNombre();
+                            }else if(aux.equals("tipo")){
+                                RESULT = datosresult.getVariables().get(auxexp).getTipo();
+                            }else if(aux.equals("funcion")){
+                                RESULT = datosresult.getVariables().get(auxexp).getFuncion();
+                            }else if(aux.equals("clase")){
+                                RESULT = datosresult.getVariables().get(auxexp).getClase();
+                            }else{
+                                RESULT = "";
+                            }
+                        }else{
+                            Ventana.errores.add("Semantico-El indice se sale del tamaño del arreglo-" + String.valueOf(expleft) + "-" + String.valueOf(expright));
+                            RESULT = "";
+                        }
+                    }else{
+                        Ventana.errores.add("Semantico-Incompatibilidad de tipos, no se puede utilizar un valor de tipo: " + exp.getTipo() + ", en las posiciones de un arreglo.-" + String.valueOf(expleft) + "-" + String.valueOf(expright));
+                    }
+                }else{
+                    RESULT = "";
+                }
+            :}
+            | tmetodos tcorcheteabrir EXP:exp tcorchetecerrar tpunto ATRIBUTOSMETODOS:aux{:
+                if(!VerificarDatosResult()){
+                    if(exp.getTipo().equals("entero")){
+                        int auxexp = Integer.parseInt(exp.getValor());
+                        if(auxexp >= 0 && auxexp < datosresult.getMetodos().size()){
+                            if(aux.equals("nombre")){
+                                RESULT = datosresult.getMetodos().get(auxexp).getNombre();
+                            }else if(aux.equals("tipo")){
+                                RESULT = datosresult.getMetodos().get(auxexp).getTipo();
+                            }else if(aux.equals("parametros")){
+                                RESULT = String.valueOf(datosresult.getMetodos().get(auxexp).getParametros());
+                            }else{
+                                RESULT = "";
+                            }
+                        }else{
+                            Ventana.errores.add("Semantico-El indice se sale del tamaño del arreglo-" + String.valueOf(expleft) + "-" + String.valueOf(expright));
+                            RESULT = "";
+                        }
+                    }else{
+                        Ventana.errores.add("Semantico-Incompatibilidad de tipos, no se puede utilizar un valor de tipo: " + exp.getTipo() + ", en las posiciones de un arreglo.-" + String.valueOf(expleft) + "-" + String.valueOf(expright));
+                    }
+                }else{
+                    RESULT = "";
+                }
+            :}
+            | tclases tcorcheteabrir EXP:exp tcorchetecerrar tpunto tnombre{:
+                if(!VerificarDatosResult()){
+                    if(exp.getTipo().equals("entero")){
+                        int auxexp = Integer.parseInt(exp.getValor());
+                        if(auxexp >= 0 && auxexp < datosresult.getClases().size()){
+                            RESULT = datosresult.getClases().get(auxexp).getNombre();
+                        }else{
+                            Ventana.errores.add("Semantico-El indice se sale del tamaño del arreglo-" + String.valueOf(expleft) + "-" + String.valueOf(expright));
+                            RESULT = "";
+                        }
+                    }else{
+                        Ventana.errores.add("Semantico-Incompatibilidad de tipos, no se puede utilizar un valor de tipo: " + exp.getTipo() + ", en las posiciones de un arreglo.-" + String.valueOf(expleft) + "-" + String.valueOf(expright));
+                    }
+                }else{
+                    RESULT = "";
+                }
+            :}
+            | VALORESRESULT:valoresresult{:
+                String datos = "";
+                if(valoresresult.equals("metodos")){
+                    for(int i = 0; i < datosresult.getMetodos().size(); i++){
+                        if(i == datosresult.getMetodos().size() - 1){
+                            datos += "NOMBRE: " + datosresult.getMetodos().get(i).getNombre() + " TIPO: " + datosresult.getMetodos().get(i).getTipo() + " PARAMETROS: " + datosresult.getMetodos().get(i).getParametros();
+                        }else{
+                            datos += "NOMBRE: " + datosresult.getMetodos().get(i).getNombre() + " TIPO: " + datosresult.getMetodos().get(i).getTipo() + " PARAMETROS: " + datosresult.getMetodos().get(i).getParametros() + ", ";
+                        }
+                    }
+                }else if(valoresresult.equals("variables")){
+                    for(int i = 0; i < datosresult.getVariables().size(); i++){
+                        if(i == datosresult.getVariables().size() - 1){
+                            datos += "NOMBRE: " + datosresult.getVariables().get(i).getNombre() + " TIPO: " + datosresult.getVariables().get(i).getTipo() + " FUNCION PADRE: " + datosresult.getVariables().get(i).getFuncion() + " CLASE A LA QUE PERTENECE: " + datosresult.getVariables().get(i).getClase();
+                        }else{
+                            datos += "NOMBRE: " + datosresult.getVariables().get(i).getNombre() + " TIPO: " + datosresult.getVariables().get(i).getTipo() + " FUNCION PADRE: " + datosresult.getVariables().get(i).getFuncion() + " CLASE A LA QUE PERTENECE: " + datosresult.getVariables().get(i).getClase() + ", ";
+                        }
+                    }
+                }else if(valoresresult.equals("clases")){
+                    for(int i = 0; i < datosresult.getClases().size(); i++){
+                        if(i == datosresult.getClases().size() - 1){
+                            datos += "NOMBRE: " + datosresult.getClases().get(i).getNombre();
+                        }else{
+                            datos += "NOMBRE: " + datosresult.getClases().get(i).getNombre() + ", ";
+                        }
+                    }
+                }
+                RESULT = datos;
+            :}
+            | VALORESRESULT:valoresresult tpunto tnombre{:
+                String datos = "";
+                if(valoresresult.equals("metodos")){
+                    for(int i = 0; i < datosresult.getMetodos().size(); i++){
+                        if(i == datosresult.getMetodos().size() - 1){
+                            datos += datosresult.getMetodos().get(i).getNombre();
+                        }else{
+                            datos += datosresult.getMetodos().get(i).getNombre() + ", ";
+                        }
+                    }
+                }else if(valoresresult.equals("variables")){
+                    for(int i = 0; i < datosresult.getVariables().size(); i++){
+                        if(i == datosresult.getVariables().size() - 1){
+                            datos += datosresult.getVariables().get(i).getNombre();
+                        }else{
+                            datos += datosresult.getVariables().get(i).getNombre() + ", ";
+                        }
+                    }
+                }else if(valoresresult.equals("clases")){
+                    for(int i = 0; i < datosresult.getClases().size(); i++){
+                        if(i == datosresult.getClases().size() - 1){
+                            datos += datosresult.getClases().get(i).getNombre();
+                        }else{
+                            datos += datosresult.getClases().get(i).getNombre() + ", ";
+                        }
+                    }
+                }else{
+                    datos = "";
+                }
+                RESULT = datos;
+            :}
+            | VALORESRESULT:valoresresult tpunto tcantidad{:
+                int cantidad = 0;
+                if(valoresresult.equals("metodos")){
+                    cantidad = datosresult.getMetodos().size();
+                    RESULT = "cantidad:" + String.valueOf(cantidad);
+                }else if(valoresresult.equals("variables")){
+                    cantidad = datosresult.getVariables().size();
+                    RESULT = "cantidad:" + String.valueOf(cantidad);
+                }else if(valoresresult.equals("clases")){
+                    cantidad = datosresult.getClases().size();
+                    RESULT = "cantidad:" + String.valueOf(cantidad);
+                }else{
+                    RESULT = "";
+                }
+            :};
+
+ATRIBUTOSVARIABLES ::= tnombre{:RESULT = "nombre";:}
+                    | ttipo{:RESULT = "tipo";:}
+                    | tfuncion{:RESULT = "funcion";:}
+                    | tclase{:RESULT = "clase";:};
+
+ATRIBUTOSMETODOS ::= tnombre{:RESULT = "nombre";:}
+                    | ttipo{:RESULT = "tipo";:}
+                    | tparametros{:RESULT = "parametros";:};
+
+VALORESRESULT ::= tmetodos{:RESULT = "metodos";:}
+                | tvariables{:RESULT = "variables";:}
+                | tclases{:RESULT = "clases";:};
+
+LID ::= ID:id tcoma LID:lid{:
+        ArrayList<Variables> aux = new ArrayList();
+        aux.add(id);
+        for(int i = 0; i < lid.size(); i++){
+            aux.add(lid.get(i));
+        }
+        RESULT = aux;
+    :}
+    | ID:id{:
+        ArrayList<Variables> aux = new ArrayList();
+        aux.add(id);
+        RESULT = aux;
+    :};
+
+ID ::= tid:id{:
+        Variables aux = new Variables();
+        aux.setNombre(id);
+        aux.setValor(null);
+        RESULT = aux;
+    :}
+    | tid:id tasignar EXP:exp{:
+        Variables aux = new Variables();
+        aux.setNombre(id);
+        aux.setValor(exp);
+        RESULT = aux;
+    :};
+
+ASIGNACION ::= tid:id tasignar EXP:exp tpuntoycoma{:
+                if(ExisteVariable(id) && !exp.getTipo().equals("error")){
+                    Variables aux = ObtenerVariable(id);
+                    if(aux.getTipo().equals(exp.getTipo())){
+                        aux.setValor(exp);
+                    }else if(aux.getTipo().equals("booleano") && (exp.getTipo().equals("entero") && (exp.getValor().equals("1") || exp.getValor().equals("0")))){
+                        if(exp.getValor().equals("1")){
+                            exp.setValor("true");
+                            exp.setTipo("booleano");
+                        }else{
+                            exp.setValor("false");
+                            exp.setTipo("booleano");
+                        }
+                        aux.setValor(exp);
+                    }else{
+                        Ventana.errores.add("Semantico-Error de tipos. No se puede convertir: " + exp.getTipo() + " en " + aux.getTipo() + "-" + String.valueOf(idleft) + "-" + String.valueOf(idright));
+                    }
+                }else{
+                    Ventana.errores.add("Semantico-La variable: " + id + ", no fue declarada anteriormente.-" + String.valueOf(idleft) + "-" + String.valueOf(idright));
+                }
+            :}
+            | tid:id tmas tigual EXP:exp tpuntoycoma{:
+                if(ExisteVariable(id) && !exp.getTipo().equals("error")){
+                    Variables aux = ObtenerVariable(id);
+                    if(aux.getTipo().equals(exp.getTipo())){
+                        if(aux.getTipo().equals("entero")){
+                            if(aux.getValor().getValor().isEmpty()){
+                                aux.setValor(exp);
+                            }else{
+                                int auxid = Integer.parseInt(aux.getValor().getValor());
+                                int exp1 = Integer.parseInt(exp.getValor());
+                                int resultado = auxid + exp1;
+                                exp.setValor(String.valueOf(resultado));
+                                aux.setValor(exp);
+                            }
+                        }else if(aux.getTipo().equals("decimal")){
+                            if(aux.getValor().getValor().isEmpty()){
+                                aux.setValor(exp);
+                            }else{
+                                float auxid = Float.parseFloat(aux.getValor().getValor());
+                                float exp1 = Float.parseFloat(exp.getValor());
+                                float resultado = auxid + exp1;
+                                exp.setValor(String.valueOf(resultado));
+                                aux.setValor(exp);
+                            }
+                        }else if(aux.getTipo().equals("cadena")){
+                            String conca = aux.getValor().getValor() + exp.getValor();
+                            exp.setValor(conca);
+                            aux.setValor(exp);
+                        }else{
+                            Ventana.errores.add("Semantico-No se pueden sumar tipos que no sean int o float o String-" + String.valueOf(idleft) + "-" + String.valueOf(idright));
+                       }
+                    }else if(aux.getTipo().equals("decimal") && (exp.getTipo().equals("entero") || exp.getTipo().equals("decimal"))){
+                        if(aux.getValor().getValor().isEmpty()){
+                            aux.setValor(exp);
+                        }else{
+                            float auxid = Float.parseFloat(aux.getValor().getValor());
+                            float auxexp = Float.parseFloat(exp.getValor());
+                            float resultado = auxid + auxexp;
+                            exp.setValor(String.valueOf(resultado));
+                            aux.setValor(exp);
+                        }
+                    }else if(aux.getTipo().equals("cadena") && (exp.getTipo().equals("entero") || exp.getTipo().equals("decimal") || exp.getTipo().equals("cadena"))){
+                        String auxid = aux.getValor().getValor();
+                        String auxexp = exp.getValor();
+                        exp.setValor(auxid + auxexp);
+                        aux.setValor(exp);
+                    }else{
+                        Ventana.errores.add("Semantico-No se pueden sumar tipos que no sean int o float o String-" + String.valueOf(idleft) + "-" + String.valueOf(idright));
+                    }
+                }else{
+                    Ventana.errores.add("Semantico-La variable: " + id + ", no fue declarada anteriormente.-" + String.valueOf(idleft) + "-" + String.valueOf(idright));
+                }
+            :}
+            | tid:id tresta tigual EXP:exp tpuntoycoma{:
+                if(ExisteVariable(id) && !exp.getTipo().equals("error")){
+                    Variables aux = ObtenerVariable(id);
+                    if(aux.getTipo().equals(exp.getTipo())){
+                        if(aux.getTipo().equals("entero")){
+                            if(aux.getValor().getValor().isEmpty()){
+                                int auxexp = Integer.parseInt(exp.getValor());
+                                int resultado = 0 - auxexp;
+                                exp.setValor(String.valueOf(resultado));
+                                aux.setValor(exp);
+                            }else{
+                                int auxid = Integer.parseInt(aux.getValor().getValor());
+                                int exp1 = Integer.parseInt(exp.getValor());
+                                int resultado = auxid - exp1;
+                                exp.setValor(String.valueOf(resultado));
+                                aux.setValor(exp);
+                            }
+                        }else if(aux.getTipo().equals("decimal")){
+                            if(aux.getValor().getValor().isEmpty()){
+                                float auxexp = Float.parseFloat(exp.getValor());
+                                float resultado = 0 - auxexp;
+                                exp.setValor(String.valueOf(resultado));
+                                aux.setValor(exp);
+                            }else{
+                                float auxid = Float.parseFloat(aux.getValor().getValor());
+                                float exp1 = Float.parseFloat(exp.getValor());
+                                float resultado = auxid - exp1;
+                                exp.setValor(String.valueOf(resultado));
+                                aux.setValor(exp);
+                            }
+                        }else{
+                            Ventana.errores.add("Semantico-No se pueden sumar tipos que no sean int o float-" + String.valueOf(idleft) + "-" + String.valueOf(idright));
+                       }
+                    }else if(aux.getTipo().equals("decimal") && (exp.getTipo().equals("entero") || exp.getTipo().equals("decimal"))){
+                        if(aux.getValor().getValor().isEmpty()){
+                            float auxexp = Integer.parseInt(exp.getValor());
+                            float resultado = 0- auxexp;
+                            exp.setValor(String.valueOf(resultado));
+                            aux.setValor(exp);
+                        }else{
+                            float auxid = Float.parseFloat(aux.getValor().getValor());
+                            float auxexp = Float.parseFloat(exp.getValor());
+                            float resultado = auxid - auxexp;
+                            exp.setValor(String.valueOf(resultado));
+                            aux.setValor(exp);
+                        }
+                    }else{
+                        Ventana.errores.add("Semantico-No se pueden sumar tipos que no sean int o float o String-" + String.valueOf(idleft) + "-" + String.valueOf(idright));
+                    }
+                }else{
+                    Ventana.errores.add("Semantico-La variable: " + id + ", no fue declarada anteriormente.-" + String.valueOf(idleft) + "-" + String.valueOf(idright));
+                }
+            :}
+            | tid:id tmultiplicacion tigual EXP:exp tpuntoycoma{:
+                if(ExisteVariable(id) && !exp.getTipo().equals("error")){
+                    Variables aux = ObtenerVariable(id);
+                    if(aux.getTipo().equals(exp.getTipo())){
+                        if(aux.getTipo().equals("entero")){
+                            if(aux.getValor().getValor().isEmpty()){
+                                exp.setValor("0");
+                                aux.setValor(exp);
+                            }else{
+                                int auxid = Integer.parseInt(aux.getValor().getValor());
+                                int exp1 = Integer.parseInt(exp.getValor());
+                                int resultado = auxid * exp1;
+                                exp.setValor(String.valueOf(resultado));
+                                aux.setValor(exp);
+                            }
+                        }else if(aux.getTipo().equals("decimal")){
+                            if(aux.getValor().getValor().isEmpty()){
+                                exp.setValor("0");
+                                aux.setValor(exp);
+                            }else{
+                                float auxid = Float.parseFloat(aux.getValor().getValor());
+                                float exp1 = Float.parseFloat(exp.getValor());
+                                float resultado = auxid * exp1;
+                                exp.setValor(String.valueOf(resultado));
+                                aux.setValor(exp);
+                            }
+                        }else{
+                            Ventana.errores.add("Semantico-No se pueden sumar tipos que no sean int o float-" + String.valueOf(idleft) + "-" + String.valueOf(idright));
+                       }
+                    }else if(aux.getTipo().equals("decimal") && (exp.getTipo().equals("entero") || exp.getTipo().equals("decimal"))){
+                        if(aux.getValor().getValor().isEmpty()){
+                            exp.setValor("0");
+                            aux.setValor(exp);
+                        }else{
+                            float auxid = Float.parseFloat(aux.getValor().getValor());
+                            float auxexp = Float.parseFloat(exp.getValor());
+                            float resultado = auxid * auxexp;
+                            exp.setValor(String.valueOf(resultado));
+                            aux.setValor(exp);
+                        }
+                    }else{
+                        Ventana.errores.add("Semantico-No se pueden multiplicar tipos que no sean int o float-" + String.valueOf(idleft) + "-" + String.valueOf(idright));
+                    }
+                }else{
+                    Ventana.errores.add("Semantico-La variable: " + id + ", no fue declarada anteriormente.-" + String.valueOf(idleft) + "-" + String.valueOf(idright));
+                }
+            :}
+            | tid:id tmas tmas tpuntoycoma{:
+                if(ExisteVariable(id)){
+                    Variables aux = ObtenerVariable(id);
+                    if(aux.getTipo().equals("entero")){
+                        if(aux.getValor().getValor().isEmpty()){
+                            aux.getValor().setValor("1");
+                        }else{
+                            int auxid = Integer.parseInt(aux.getValor().getValor());
+                            auxid = auxid++;
+                            aux.getValor().setValor(String.valueOf(auxid));
+                        }
+                    }else if(aux.getTipo().equals("decimal")){
+                        if(aux.getValor().getValor().isEmpty()){
+                            aux.getValor().setValor("1");
+                        }else{
+                            float auxid = Float.parseFloat(aux.getValor().getValor());
+                            auxid = auxid++;
+                            aux.getValor().setValor(String.valueOf(auxid));
+                        }
+                    }else{
+                        Ventana.errores.add("Semantico-El operador de incremento(++). Solo puede usarse con valores numericos.-" + String.valueOf(idleft) + "-" + String.valueOf(idright));
+                    }
+                }else{
+                    Ventana.errores.add("Semantico-La variable: " + id + ", no fue declarada anteriormente.-" + String.valueOf(idleft) + "-" + String.valueOf(idright));
+                }
+            :}
+            | tid:id tresta tresta tpuntoycoma{:
+                if(ExisteVariable(id)){
+                    Variables aux = ObtenerVariable(id);
+                    if(aux.getTipo().equals("entero")){
+                        if(aux.getValor().getValor().isEmpty()){
+                            aux.getValor().setValor("-1");
+                        }else{
+                            int auxid = Integer.parseInt(aux.getValor().getValor());
+                            auxid = auxid--;
+                            aux.getValor().setValor(String.valueOf(auxid));
+                        }
+                    }else if(aux.getTipo().equals("decimal")){
+                        if(aux.getValor().getValor().isEmpty()){
+                            aux.getValor().setValor("-1");
+                        }else{
+                            float auxid = Float.parseFloat(aux.getValor().getValor());
+                            auxid = auxid--;
+                            aux.getValor().setValor(String.valueOf(auxid));
+                        }
+                    }else{
+                        Ventana.errores.add("Semantico-El operador de decremento(--). Solo puede usarse con valores numericos.-" + String.valueOf(idleft) + "-" + String.valueOf(idright));
+                    }
+                }else{
+                    Ventana.errores.add("Semantico-La variable: " + id + ", no fue declarada anteriormente.-" + String.valueOf(idleft) + "-" + String.valueOf(idright));
+                }
+            :};
+
+EXP ::= EXP:exp1 tmultiplicacion EXP:exp2{:
+        Valor aux = new Valor();
+        if(!exp1.getTipo().equals("error") && !exp2.getTipo().equals("error")){
+            if(exp1.getTipo().equals(exp2.getTipo())){
+                if(exp1.getTipo().equals("entero")){
+                    int aux1 = Integer.parseInt(exp1.getValor());
+                    int aux2 = Integer.parseInt(exp2.getValor());
+                    int resultado = aux1 * aux2;
+                    aux.setTipo("entero");
+                    aux.setValor(String.valueOf(resultado));
+                }else if(exp1.getTipo().equals("decimal")){
+                    float aux1 = Float.parseFloat(exp1.getValor());
+                    float aux2 = Float.parseFloat(exp2.getValor());
+                    float resultado = aux1 * aux2;
+                    aux.setTipo("decimal");
+                    aux.setValor(String.valueOf(resultado));
+                }else{
+                    Ventana.errores.add("Semantico-No se puede multiplicar tipos que no sean int o float-" + String.valueOf(exp1left) + "-" + String.valueOf(exp1right));
+                    aux.setTipo("error");
+                    aux.setValor("error");
+                }
+            }else if((exp1.getTipo().equals("entero") && exp2.getTipo().equals("decimal")) || (exp1.getTipo().equals("decimal") && exp2.getTipo().equals("entero"))){
+                float aux1 = Float.parseFloat(exp1.getValor());
+                float aux2 = Float.parseFloat(exp2.getValor());
+                float resultado = aux1 * aux2;
+                aux.setTipo("decimal");
+                aux.setValor(String.valueOf(resultado));
+            }else{
+                Ventana.errores.add("Semantico-No se puede multiplicar tipos que no sean int o float-" + String.valueOf(exp1left) + "-" + String.valueOf(exp1right));
+                aux.setTipo("error");
+                aux.setValor("error");
+            }
+        }else{
+            aux.setTipo("error");
+            aux.setValor("error");
+        }
+
+        RESULT = aux;
+    :}
+    | EXP:exp1 tdivision EXP:exp2{:
+        Valor aux = new Valor();
+        if(!exp1.getTipo().equals("error") && !exp2.getTipo().equals("error")){
+            if(exp1.getTipo().equals(exp2.getTipo())){
+                if(exp1.getTipo().equals("entero")){
+                    int aux1 = Integer.parseInt(exp1.getValor());
+                    int aux2 = Integer.parseInt(exp2.getValor());
+                    if(aux2 != 0){
+                        int resultado = aux1 / aux2;
+                        aux.setTipo("entero");
+                        aux.setValor(String.valueOf(resultado));
+                    }else{
+                        aux.setTipo("error");
+                        aux.setValor("error");
+                        Ventana.errores.add("Semantico-Division por cero-" + String.valueOf(exp2left) + "-" + String.valueOf(exp2right));
+                    }
+                }else if(exp1.getTipo().equals("decimal")){
+                    float aux1 = Float.parseFloat(exp1.getValor());
+                    float aux2 = Float.parseFloat(exp2.getValor());
+                    if(aux2 != 0){
+                        float resultado = aux1 / aux2;
+                        aux.setTipo("decimal");
+                        aux.setValor(String.valueOf(resultado));
+                    }else{
+                        aux.setTipo("error");
+                        aux.setValor("error");
+                        Ventana.errores.add("Semantico-Division por cero-" + String.valueOf(exp2left) + "-" + String.valueOf(exp2right));
+                    }
+                }else{
+                    Ventana.errores.add("Semantico-No se puede multiplicar tipos que no sean int o float-" + String.valueOf(exp1left) + "-" + String.valueOf(exp1right));
+                    aux.setTipo("error");
+                    aux.setValor("error");
+                }
+            }else if((exp1.getTipo().equals("entero") && exp2.getTipo().equals("decimal")) || (exp1.getTipo().equals("decimal") && exp2.getTipo().equals("entero"))){
+                float aux1 = Float.parseFloat(exp1.getValor());
+                float aux2 = Float.parseFloat(exp2.getValor());
+                if(aux2 > 0){
+                    float resultado = aux1 / aux2;
+                    aux.setTipo("decimal");
+                    aux.setValor(String.valueOf(resultado));
+                }else{
+                        aux.setTipo("error");
+                        aux.setValor("error");
+                        Ventana.errores.add("Semantico-Division por cero-" + String.valueOf(exp2left) + "-" + String.valueOf(exp2right));
+                    }
+            }else{
+                Ventana.errores.add("Semantico-No se puede multiplicar tipos que no sean int o float-" + String.valueOf(exp1left) + "-" + String.valueOf(exp1right));
+                aux.setTipo("error");
+                aux.setValor("error");
+            }
+        }else{
+            aux.setTipo("error");
+            aux.setValor("error");
+        }
+
+        RESULT = aux;
+    :}
+    | EXP:exp1 tmodulo EXP:exp2{:
+        Valor aux = new Valor();
+        if(!exp1.getTipo().equals("error") && !exp2.getTipo().equals("error")){
+            if(exp1.getTipo().equals(exp2.getTipo())){
+                if(exp1.getTipo().equals("entero")){
+                    int aux1 = Integer.parseInt(exp1.getValor());
+                    int aux2 = Integer.parseInt(exp2.getValor());
+                    if(aux2 != 0){
+                        int resultado = aux1 % aux2;
+                        aux.setTipo("entero");
+                        aux.setValor(String.valueOf(resultado));
+                    }else{
+                        aux.setTipo("error");
+                        aux.setValor("error");
+                        Ventana.errores.add("Semantico-Division por cero-" + String.valueOf(exp2left) + "-" + String.valueOf(exp2right));
+                    }
+                }else if(exp1.getTipo().equals("decimal")){
+                    float aux1 = Float.parseFloat(exp1.getValor());
+                    float aux2 = Float.parseFloat(exp2.getValor());
+                    if(aux2 != 0){
+                        float resultado = aux1 % aux2;
+                        aux.setTipo("decimal");
+                        aux.setValor(String.valueOf(resultado));
+                    }else{
+                        aux.setTipo("error");
+                        aux.setValor("error");
+                        Ventana.errores.add("Semantico-Division por cero-" + String.valueOf(exp2left) + "-" + String.valueOf(exp2right));
+                    }
+                }else{
+                    Ventana.errores.add("Semantico-No se puede multiplicar tipos que no sean int o float-" + String.valueOf(exp1left) + "-" + String.valueOf(exp1right));
+                    aux.setTipo("error");
+                    aux.setValor("error");
+                }
+            }else if((exp1.getTipo().equals("entero") && exp2.getTipo().equals("decimal")) || (exp1.getTipo().equals("decimal") && exp2.getTipo().equals("entero"))){
+                float aux1 = Float.parseFloat(exp1.getValor());
+                float aux2 = Float.parseFloat(exp2.getValor());
+                if(aux2 > 0){
+                    float resultado = aux1 % aux2;
+                    aux.setTipo("decimal");
+                    aux.setValor(String.valueOf(resultado));
+                }else{
+                        aux.setTipo("error");
+                        aux.setValor("error");
+                        Ventana.errores.add("Semantico-Division por cero-" + String.valueOf(exp2left) + "-" + String.valueOf(exp2right));
+                    }
+            }else{
+                Ventana.errores.add("Semantico-No se puede multiplicar tipos que no sean int o float-" + String.valueOf(exp1left) + "-" + String.valueOf(exp1right));
+                aux.setTipo("error");
+                aux.setValor("error");
+            }
+        }else{
+            aux.setTipo("error");
+            aux.setValor("error");
+        }
+
+        RESULT = aux;
+    :}
+    | EXP:exp1 tmas EXP:exp2{:
+        //System.out.println("Suma de cadenas");
+        Valor aux = new Valor();
+        if(!exp1.getTipo().equals("error") && !exp2.getTipo().equals("error")){
+            if(exp1.getTipo().equals(exp2.getTipo())){
+                if(exp1.getTipo().equals("entero")){
+                    int aux1 = Integer.parseInt(exp1.getValor());
+                    int aux2 = Integer.parseInt(exp2.getValor());
+                    int resultado = aux1 + aux2;
+                    aux.setValor(String.valueOf(resultado));
+                    aux.setTipo("entero");
+                }else if(exp1.getTipo().equals("decimal")){
+                    float aux1 = Float.parseFloat(exp1.getValor());
+                    float aux2 = Float.parseFloat(exp2.getValor());
+                    float resultado = aux1 + aux2;
+                    aux.setValor(String.valueOf(resultado));
+                    aux.setTipo("decimal");
+                }else if(exp1.getTipo().equals("cadena")){
+                    String resultado = exp1.getValor() + exp2.getValor();
+                    aux.setValor(resultado);
+                    aux.setTipo("cadena");
+                }else{
+                    Ventana.errores.add("Semantico-No se pueden sumar tipos que no sean int o float o String-" + String.valueOf(exp1left) + "-" + String.valueOf(exp1right));
+                    aux.setTipo("error");
+                    aux.setValor("error");
+                }
+            }else if((exp1.getTipo().equals("entero") && exp2.getTipo().equals("decimal")) || (exp1.getTipo().equals("decimal") && exp2.getTipo().equals("entero"))){
+                float aux1 = Float.parseFloat(exp1.getValor());
+                float aux2 = Float.parseFloat(exp2.getValor());
+                float resultado = aux1 + aux2;
+                aux.setTipo("decimal");
+                aux.setValor(String.valueOf(resultado));
+            }else if((exp1.getTipo().equals("cadena") && (exp2.getTipo().equals("decimal") || exp2.getTipo().equals("entero"))) || ((exp1.getTipo().equals("decimal") || exp1.getTipo().equals("entero")) && exp2.getTipo().equals("cadena"))){
+                String resultado = exp1.getValor() + exp2.getValor();
+                aux.setTipo("cadena");
+                aux.setValor(resultado);
+            }else{
+                Ventana.errores.add("Semantico-No se pueden sumar tipos que no sean int o float o String-" + String.valueOf(exp1left) + "-" + String.valueOf(exp1right));
+                aux.setTipo("error");
+                aux.setValor("error");
+            }
+        }else{
+            aux.setTipo("error");
+            aux.setValor("error");
+        }
+        RESULT = aux;
+    :}
+    | EXP:exp1 tresta EXP:exp2{:
+        Valor aux = new Valor();
+        if(!exp1.getTipo().equals("error") && !exp2.getTipo().equals("error")){
+            if(exp1.getTipo().equals(exp2.getTipo())){
+                if(exp1.getTipo().equals("entero")){
+                    int aux1 = Integer.parseInt(exp1.getValor());
+                    int aux2 = Integer.parseInt(exp2.getValor());
+                    int resultado = aux1 - aux2;
+                    aux.setTipo("entero");
+                    aux.setValor(String.valueOf(resultado));
+                }else if(exp1.getTipo().equals("decimal")){
+                    float aux1 = Float.parseFloat(exp1.getValor());
+                    float aux2 = Float.parseFloat(exp2.getValor());
+                    float resultado = aux1 - aux2;
+                    aux.setTipo("decimal");
+                    aux.setValor(String.valueOf(resultado));
+                }else{
+                    Ventana.errores.add("Semantico-No se pueden sumar tipos que no sean int o float-" + String.valueOf(exp1left) + "-" + String.valueOf(exp1right));
+                    aux.setValor("error");
+                    aux.setTipo("error");
+                }
+            }else if((exp1.getTipo().equals("entero") && exp2.getTipo().equals("decimal")) || (exp1.getTipo().equals("decimal") && exp2.getTipo().equals("entero"))){
+                float aux1 = Float.parseFloat(exp1.getValor());
+                float aux2 = Float.parseFloat(exp2.getValor());
+                float resultado = aux1 - aux2;
+                aux.setTipo("decimal");
+                aux.setValor(String.valueOf(resultado));
+            }else{
+                Ventana.errores.add("Semantico-No se pueden sumar tipos que no sean int o float-" + String.valueOf(exp1left) + "-" + String.valueOf(exp1right));
+                aux.setValor("error");
+                aux.setTipo("error");
+            }
+        }else{
+            aux.setTipo("error");
+            aux.setValor("error");
+        }
+        RESULT = aux;
+    :}
+    | EXP:exp1 tand EXP:exp2{:
+        Valor aux = new Valor();
+        if(!exp1.getTipo().equals("error") && !exp2.getTipo().equals("error")){
+            if(exp1.getTipo().equals("booleano") && exp2.getTipo().equals("booleano")){
+                boolean aux1, aux2;
+                if(exp1.getValor().equals("true")){
+                    aux1 = true;
+                }else{
+                    aux1 = false;
+                }
+                if(exp2.getValor().equals("true")){
+                    aux2 = true;
+                }else{
+                    aux2 = false;
+                }
+                if(aux1 && aux2){
+                    aux.setValor("true");
+                    aux.setTipo("booleano");
+                }else{
+                    aux.setValor("false");
+                    aux.setTipo("booleano");
+                }
+            }else if((exp1.getTipo().equals("entero") || exp1.getTipo().equals("booleano")) && (exp2.getTipo().equals("entero") || exp2.getTipo().equals("booleano"))){
+                boolean aux1 = false;
+                boolean aux2= false;
+                boolean paso1, paso2;
+                if(exp1.getValor().equals("1") || exp1.getValor().equals("true")){
+                    aux1 = true;
+                    paso1 = true;
+                }else if(exp1.getValor().equals("0") || exp1.getValor().equals("false")){
+                    aux1 = false;
+                    paso1 = true;
+                }else{
+                    paso1 = false;
+                }
+
+                if(exp2.getValor().equals("1") || exp2.getValor().equals("true")){
+                    aux2 = true;
+                    paso2 = true;
+                }else if(exp2.getValor().equals("0") || exp2.getValor().equals("false")){
+                    aux2 = false;
+                    paso2 = true;
+                }else{
+                    paso2 = false;
+                }
+
+                if(paso1 && paso2){
+                    if(aux1 && aux2){
+                        aux.setTipo("booleano");
+                        aux.setValor("true");
+                    }else{
+                        aux.setTipo("booleano");
+                        aux.setValor("false");
+                    }
+                }else{
+                    Ventana.errores.add("Semantico-No se pueden comparar tipos que no sean boolean en un and-" + String.valueOf(exp1left) + "-" + String.valueOf(exp1right));
+                    aux.setValor("error");
+                    aux.setTipo("error");
+                }
+            }else{
+                Ventana.errores.add("Semantico-No se pueden comparar tipos que no sean boolean en un and-" + String.valueOf(exp1left) + "-" + String.valueOf(exp1right));
+                aux.setValor("error");
+                aux.setTipo("error");
+            }
+        }else{
+            aux.setTipo("error");
+            aux.setValor("error");
+        }
+        RESULT = aux;
+    :}
+    | EXP:exp1 tor EXP:exp2{:
+        Valor aux = new Valor();
+        //System.out.println("exp1");
+        //System.out.println(exp1.getTipo());
+        //System.out.println(exp1.getValor());
+        //System.out.println("exp2");
+        //System.out.println(exp2.getTipo());
+        //System.out.println(exp2.getValor());
+        if(!exp1.getTipo().equals("error") && !exp2.getTipo().equals("error")){
+            if(exp1.getTipo().equals("booleano") && exp2.getTipo().equals("booleano")){
+                boolean aux1, aux2;
+                if(exp1.getValor().equals("true")){
+                    aux1 = true;
+                }else{
+                    aux1 = false;
+                }
+                if(exp2.getValor().equals("true")){
+                    aux2 = true;
+                }else{
+                    aux2 = false;
+                }
+                if(aux1 || aux2){
+                    aux.setValor("true");
+                    aux.setTipo("booleano");
+                }else{
+                    aux.setValor("false");
+                    aux.setTipo("booleano");
+                }
+            }else if((exp1.getTipo().equals("entero") || exp1.getTipo().equals("booleano")) && (exp2.getTipo().equals("entero") || exp2.getTipo().equals("booleano"))){
+                boolean aux1 = false;
+                boolean aux2= false;
+                boolean paso1, paso2;
+                if(exp1.getValor().equals("1") || exp1.getValor().equals("true")){
+                    aux1 = true;
+                    paso1 = true;
+                }else if(exp1.getValor().equals("0") || exp1.getValor().equals("false")){
+                    aux1 = false;
+                    paso1 = true;
+                }else{
+                    paso1 = false;
+                }
+
+                if(exp2.getValor().equals("1") || exp2.getValor().equals("true")){
+                    aux2 = true;
+                    paso2 = true;
+                }else if(exp2.getValor().equals("0") || exp2.getValor().equals("false")){
+                    aux2 = false;
+                    paso2 = true;
+                }else{
+                    paso2 = false;
+                }
+
+                if(paso1 && paso2){
+                    if(aux1 || aux2){
+                        aux.setTipo("booleano");
+                        aux.setValor("true");
+                    }else{
+                        aux.setTipo("booleano");
+                        aux.setValor("false");
+                    }
+                }else{
+                    Ventana.errores.add("Semantico-No se pueden comparar tipos que no sean boolean en un or-" + String.valueOf(exp1left) + "-" + String.valueOf(exp1right));
+                    aux.setValor("error");
+                    aux.setTipo("error");
+                }
+            }else{
+                Ventana.errores.add("Semantico-No se pueden comparar tipos que no sean boolean en un or-" + String.valueOf(exp1left) + "-" + String.valueOf(exp1right));
+                aux.setValor("error");
+                aux.setTipo("error");
+            }
+        }else{
+            aux.setTipo("error");
+            aux.setValor("error");
+        }
+        RESULT = aux;
+    :}
+    | tnot EXP:exp{:
+        Valor aux = new Valor();
+        if(!exp.getTipo().equals("error")){
+            if(exp.getTipo().equals("booleano") || exp.getTipo().equals("entero")){
+                if(exp.getValor().equals("true") || exp.getValor().equals("1")){
+                    aux.setValor("false");
+                    aux.setTipo("booleano");
+                }else if(exp.getValor().equals("false") || exp.getValor().equals("0")){
+                    aux.setValor("true");
+                    aux.setTipo("booleano");
+                }else{
+                    Ventana.errores.add("Semantico-Tipos incompatibles, se necesita un boolean-" + String.valueOf(expleft) + "-" + String.valueOf(expright));
+                    aux.setValor("error");
+                    aux.setTipo("error");
+                }
+            }else{
+                Ventana.errores.add("Semantico-Tipos incompatibles, se necesita un boolean-" + String.valueOf(expleft) + "-" + String.valueOf(expright));
+                aux.setValor("error");
+                aux.setTipo("error");
+            }
+        }else{
+            aux.setValor("error");
+            aux.setTipo("error");
+        }
+        RESULT = aux;
+    :}
+    | tresta EXP:exp{:
+        Valor aux = new Valor();
+        if(!exp.getTipo().equals("error")){
+            if(exp.getTipo().equals("entero") || exp.getTipo().equals("decimal")){
+                aux.setValor("-" + exp.getValor());
+                aux.setTipo(exp.getTipo());
+            }else{
+                Ventana.errores.add("Semantico-Tipos incompatibles, se necesita un int o float-" + String.valueOf(expleft) + "-" + String.valueOf(expright));
+                aux.setValor("error");
+                aux.setTipo("error");
+            }
+        }else{
+            aux.setValor("error");
+            aux.setTipo("error");
+        }
+        RESULT = aux;
+    :}
+    | EXP:exp1 tmenor EXP:exp2{:
+        Valor aux = new Valor();
+        if(!exp1.getTipo().equals("error") && !exp2.getTipo().equals("error")){
+            if(exp1.getTipo().equals(exp2.getTipo())){
+                if(exp1.getTipo().equals("entero")){
+                    int aux1 = Integer.parseInt(exp1.getValor());
+                    int aux2 = Integer.parseInt(exp2.getValor());
+                    if(aux1 < aux2){
+                        aux.setTipo("booleano");
+                        aux.setValor("true");
+                    }else{
+                        aux.setTipo("booleano");
+                        aux.setValor("false");
+                    }
+                }else if(exp1.getTipo().equals("decimal")){
+                    float aux1 = Float.parseFloat(exp1.getValor());
+                    float aux2 = Float.parseFloat(exp2.getValor());
+                    if(aux1 < aux2){
+                        aux.setTipo("booleano");
+                        aux.setValor("true");
+                    }else{
+                        aux.setTipo("booleano");
+                        aux.setValor("false");
+                    }
+                }else if(exp1.getTipo().equals("caracter")){
+                    char aux1 = exp1.getValor().charAt(0);
+                    char aux2 = exp2.getValor().charAt(0);
+                    if(aux1 < aux2){
+                        aux.setTipo("booleano");
+                        aux.setValor("true");
+                    }else{
+                        aux.setTipo("booleano");
+                        aux.setValor("false");
+                    }
+                }else{
+                    Ventana.errores.add("Semantico-No se pueden comparar tipos que no sean int, float o char con <-" + String.valueOf(exp1left) + "-" + String.valueOf(exp1right));
+                    aux.setValor("error");
+                    aux.setTipo("error");
+                }
+            }else if((exp1.getTipo().equals("entero") || exp1.getTipo().equals("decimal") || exp1.getTipo().equals("caracter")) && (exp2.getTipo().equals("entero") || exp2.getTipo().equals("decimal") || exp2.getTipo().equals("caracter"))){
+                float aux1 = 0;
+                float aux2 = 0;
+                if(exp1.getTipo().equals("caracter")){
+                    char ayuda = exp1.getValor().charAt(0);
+                    aux1 = ayuda;
+                }else{
+                    aux1 = Float.parseFloat(exp1.getValor());
+                }
+
+                if(exp2.getTipo().equals("caracter")){
+                    char ayuda = exp2.getValor().charAt(0);
+                    aux2 = ayuda;
+                }else{
+                    aux2 = Float.parseFloat(exp2.getValor());
+                }
+
+                if(aux1 < aux2){
+                    aux.setTipo("booleano");
+                    aux.setValor("true");
+                }else{
+                    aux.setTipo("booleano");
+                    aux.setValor("false");
+                }
+            }else{
+                Ventana.errores.add("Semantico-No se pueden comparar tipos que no sean int, float o char con <-" + String.valueOf(exp1left) + "-" + String.valueOf(exp1right));
+                aux.setValor("error");
+                aux.setTipo("error");
+            }
+        }else{
+            aux.setTipo("error");
+            aux.setValor("error");
+        }
+        RESULT = aux;
+    :}
+    | EXP:exp1 tmayor EXP:exp2{:
+        Valor aux = new Valor();
+        if(!exp1.getTipo().equals("error") && !exp2.getTipo().equals("error")){
+            if(exp1.getTipo().equals(exp2.getTipo())){
+                if(exp1.getTipo().equals("entero")){
+                    int aux1 = Integer.parseInt(exp1.getValor());
+                    int aux2 = Integer.parseInt(exp2.getValor());
+                    if(aux1 > aux2){
+                        aux.setTipo("booleano");
+                        aux.setValor("true");
+                    }else{
+                        aux.setTipo("booleano");
+                        aux.setValor("false");
+                    }
+                }else if(exp1.getTipo().equals("decimal")){
+                    float aux1 = Float.parseFloat(exp1.getValor());
+                    float aux2 = Float.parseFloat(exp2.getValor());
+                    if(aux1 > aux2){
+                        aux.setTipo("booleano");
+                        aux.setValor("true");
+                    }else{
+                        aux.setTipo("booleano");
+                        aux.setValor("false");
+                    }
+                }else if(exp1.getTipo().equals("caracter")){
+                    char aux1 = exp1.getValor().charAt(0);
+                    char aux2 = exp2.getValor().charAt(0);
+                    if(aux1 > aux2){
+                        aux.setTipo("booleano");
+                        aux.setValor("true");
+                    }else{
+                        aux.setTipo("booleano");
+                        aux.setValor("false");
+                    }
+                }else{
+                    Ventana.errores.add("Semantico-No se pueden comparar tipos que no sean int, float o char con >-" + String.valueOf(exp1left) + "-" + String.valueOf(exp1right));
+                    aux.setValor("error");
+                    aux.setTipo("error");
+                }
+            }else if((exp1.getTipo().equals("entero") || exp1.getTipo().equals("decimal") || exp1.getTipo().equals("caracter")) && (exp2.getTipo().equals("entero") || exp2.getTipo().equals("decimal") || exp2.getTipo().equals("caracter"))){
+                float aux1 = 0;
+                float aux2 = 0;
+                if(exp1.getTipo().equals("caracter")){
+                    char ayuda = exp1.getValor().charAt(0);
+                    aux1 = ayuda;
+                }else{
+                    aux1 = Float.parseFloat(exp1.getValor());
+                }
+
+                if(exp2.getTipo().equals("caracter")){
+                    char ayuda = exp2.getValor().charAt(0);
+                    aux2 = ayuda;
+                }else{
+                    aux2 = Float.parseFloat(exp2.getValor());
+                }
+
+                if(aux1 > aux2){
+                    aux.setTipo("booleano");
+                    aux.setValor("true");
+                }else{
+                    aux.setTipo("booleano");
+                    aux.setValor("false");
+                }
+            }else{
+                Ventana.errores.add("Semantico-No se pueden comparar tipos que no sean int, float o char con >-" + String.valueOf(exp1left) + "-" + String.valueOf(exp1right));
+                aux.setValor("error");
+                aux.setTipo("error");
+            }
+        }else{
+            aux.setTipo("error");
+            aux.setValor("error");
+        }
+        RESULT = aux;
+    :}
+    | EXP:exp1 tmenorigual EXP:exp2{:
+        Valor aux = new Valor();
+        if(!exp1.getTipo().equals("error") && !exp2.getTipo().equals("error")){
+            if(exp1.getTipo().equals(exp2.getTipo())){
+                if(exp1.getTipo().equals("entero")){
+                    int aux1 = Integer.parseInt(exp1.getValor());
+                    int aux2 = Integer.parseInt(exp2.getValor());
+                    if(aux1 <= aux2){
+                        aux.setTipo("booleano");
+                        aux.setValor("true");
+                    }else{
+                        aux.setTipo("booleano");
+                        aux.setValor("false");
+                    }
+                }else if(exp1.getTipo().equals("decimal")){
+                    float aux1 = Float.parseFloat(exp1.getValor());
+                    float aux2 = Float.parseFloat(exp2.getValor());
+                    if(aux1 <= aux2){
+                        aux.setTipo("booleano");
+                        aux.setValor("true");
+                    }else{
+                        aux.setTipo("booleano");
+                        aux.setValor("false");
+                    }
+                }else if(exp1.getTipo().equals("caracter")){
+                    char aux1 = exp1.getValor().charAt(0);
+                    char aux2 = exp2.getValor().charAt(0);
+                    if(aux1 <= aux2){
+                        aux.setTipo("booleano");
+                        aux.setValor("true");
+                    }else{
+                        aux.setTipo("booleano");
+                        aux.setValor("false");
+                    }
+                }else{
+                    Ventana.errores.add("Semantico-No se pueden comparar tipos que no sean int, float o char con <=-" + String.valueOf(exp1left) + "-" + String.valueOf(exp1right));
+                    aux.setValor("error");
+                    aux.setTipo("error");
+                }
+            }else if((exp1.getTipo().equals("entero") || exp1.getTipo().equals("decimal") || exp1.getTipo().equals("caracter")) && (exp2.getTipo().equals("entero") || exp2.getTipo().equals("decimal") || exp2.getTipo().equals("caracter"))){
+                float aux1 = 0;
+                float aux2 = 0;
+                if(exp1.getTipo().equals("caracter")){
+                    char ayuda = exp1.getValor().charAt(0);
+                    aux1 = ayuda;
+                }else{
+                    aux1 = Float.parseFloat(exp1.getValor());
+                }
+
+                if(exp2.getTipo().equals("caracter")){
+                    char ayuda = exp2.getValor().charAt(0);
+                    aux2 = ayuda;
+                }else{
+                    aux2 = Float.parseFloat(exp2.getValor());
+                }
+
+                if(aux1 <= aux2){
+                    aux.setTipo("booleano");
+                    aux.setValor("true");
+                }else{
+                    aux.setTipo("booleano");
+                    aux.setValor("false");
+                }
+            }else{
+                Ventana.errores.add("Semantico-No se pueden comparar tipos que no sean int, float o char con <=-" + String.valueOf(exp1left) + "-" + String.valueOf(exp1right));
+                aux.setValor("error");
+                aux.setTipo("error");
+            }
+        }else{
+            aux.setTipo("error");
+            aux.setValor("error");
+        }
+        RESULT = aux;
+    :}
+    | EXP:exp1 tmayorigual EXP:exp2{:
+        Valor aux = new Valor();
+        if(!exp1.getTipo().equals("error") && !exp2.getTipo().equals("error")){
+            if(exp1.getTipo().equals(exp2.getTipo())){
+                if(exp1.getTipo().equals("entero")){
+                    int aux1 = Integer.parseInt(exp1.getValor());
+                    int aux2 = Integer.parseInt(exp2.getValor());
+                    if(aux1 >= aux2){
+                        aux.setTipo("booleano");
+                        aux.setValor("true");
+                    }else{
+                        aux.setTipo("booleano");
+                        aux.setValor("false");
+                    }
+                }else if(exp1.getTipo().equals("decimal")){
+                    float aux1 = Float.parseFloat(exp1.getValor());
+                    float aux2 = Float.parseFloat(exp2.getValor());
+                    if(aux1 >= aux2){
+                        aux.setTipo("booleano");
+                        aux.setValor("true");
+                    }else{
+                        aux.setTipo("booleano");
+                        aux.setValor("false");
+                    }
+                }else if(exp1.getTipo().equals("caracter")){
+                    char aux1 = exp1.getValor().charAt(0);
+                    char aux2 = exp2.getValor().charAt(0);
+                    if(aux1 >= aux2){
+                        aux.setTipo("booleano");
+                        aux.setValor("true");
+                    }else{
+                        aux.setTipo("booleano");
+                        aux.setValor("false");
+                    }
+                }else{
+                    Ventana.errores.add("Semantico-No se pueden comparar tipos que no sean int, float o char con >=-" + String.valueOf(exp1left) + "-" + String.valueOf(exp1right));
+                    aux.setValor("error");
+                    aux.setTipo("error");
+                }
+            }else if((exp1.getTipo().equals("entero") || exp1.getTipo().equals("decimal") || exp1.getTipo().equals("caracter")) && (exp2.getTipo().equals("entero") || exp2.getTipo().equals("decimal") || exp2.getTipo().equals("caracter"))){
+                float aux1 = 0;
+                float aux2 = 0;
+                if(exp1.getTipo().equals("caracter")){
+                    char ayuda = exp1.getValor().charAt(0);
+                    aux1 = ayuda;
+                }else{
+                    aux1 = Float.parseFloat(exp1.getValor());
+                }
+
+                if(exp2.getTipo().equals("caracter")){
+                    char ayuda = exp2.getValor().charAt(0);
+                    aux2 = ayuda;
+                }else{
+                    aux2 = Float.parseFloat(exp2.getValor());
+                }
+
+                if(aux1 >= aux2){
+                    aux.setTipo("booleano");
+                    aux.setValor("true");
+                }else{
+                    aux.setTipo("booleano");
+                    aux.setValor("false");
+                }
+            }else{
+                Ventana.errores.add("Semantico-No se pueden comparar tipos que no sean int, float o char con >=-" + String.valueOf(exp1left) + "-" + String.valueOf(exp1right));
+                aux.setValor("error");
+                aux.setTipo("error");
+            }
+        }else{
+            aux.setTipo("error");
+            aux.setValor("error");
+        }
+        RESULT = aux;
+    :}
+    | EXP:exp1 tigual EXP:exp2{:
+        Valor aux = new Valor();
+        if(!exp1.getTipo().equals("error") && !exp2.getTipo().equals("error")){
+            if(exp1.getTipo().equals(exp2.getTipo())){
+                if(exp1.getTipo().equals("entero")){
+                    int aux1 = Integer.parseInt(exp1.getValor());
+                    int aux2 = Integer.parseInt(exp2.getValor());
+                    if(aux1 == aux2){
+                        aux.setTipo("booleano");
+                        aux.setValor("true");
+                    }else{
+                        aux.setTipo("booleano");
+                        aux.setValor("false");
+                    }
+                }else if(exp1.getTipo().equals("decimal")){
+                    float aux1 = Float.parseFloat(exp1.getValor());
+                    float aux2 = Float.parseFloat(exp2.getValor());
+                    if(aux1 == aux2){
+                        aux.setTipo("booleano");
+                        aux.setValor("true");
+                    }else{
+                        aux.setTipo("booleano");
+                        aux.setValor("false");
+                    }
+                }else if(exp1.getTipo().equals("caracter")){
+                    char aux1 = exp1.getValor().charAt(0);
+                    char aux2 = exp2.getValor().charAt(0);
+                    if(aux1 == aux2){
+                        aux.setTipo("booleano");
+                        aux.setValor("true");
+                    }else{
+                        aux.setTipo("booleano");
+                        aux.setValor("false");
+                    }
+                }else if(exp1.getTipo().equals("boolean")){
+                    boolean aux1, aux2;
+                    if(exp1.getValor().equals("true")){
+                        aux1 =  true;
+                    }else{
+                        aux1 = false;
+                    }
+
+                    if(exp2.getValor().equals("false")){
+                        aux2 = true;
+                    }else{
+                        aux2 = false;
+                    }
+                    if(aux1 == aux2){
+                        aux.setTipo("booleano");
+                        aux.setValor("true");
+                    }else{
+                        aux.setTipo("booleano");
+                        aux.setValor("false");
+                    }
+                }else{
+                    Ventana.errores.add("Semantico-No se pueden comparar tipos que no sean int, float, char, boolean con == entre ellos-" + String.valueOf(exp1left) + "-" + String.valueOf(exp1right));
+                    aux.setValor("error");
+                    aux.setTipo("error");
+                }
+            }else if((exp1.getTipo().equals("entero") || exp1.getTipo().equals("decimal") || exp1.getTipo().equals("caracter")) && (exp2.getTipo().equals("entero") || exp2.getTipo().equals("decimal") || exp2.getTipo().equals("caracter"))){
+                float aux1 = 0;
+                float aux2 = 0;
+                if(exp1.getTipo().equals("caracter")){
+                    char ayuda = exp1.getValor().charAt(0);
+                    aux1 = ayuda;
+                }else{
+                    aux1 = Float.parseFloat(exp1.getValor());
+                }
+
+                if(exp2.getTipo().equals("caracter")){
+                    char ayuda = exp2.getValor().charAt(0);
+                    aux2 = ayuda;
+                }else{
+                    aux2 = Float.parseFloat(exp2.getValor());
+                }
+
+                if(aux1 == aux2){
+                    aux.setTipo("booleano");
+                    aux.setValor("true");
+                }else{
+                    aux.setTipo("booleano");
+                    aux.setValor("false");
+                }
+            }else if((exp1.getTipo().equals("entero") || exp1.getTipo().equals("booleano")) && (exp2.getTipo().equals("entero") || exp2.getTipo().equals("booleano"))){
+                boolean aux1 = false;
+                boolean aux2 = false;
+                boolean paso1 = false;
+                boolean paso2 = false;
+                if(exp1.getValor().equals("1") || exp1.getValor().equals("true")){
+                    aux1 = true;
+                    paso1 = true;
+                }else if(exp1.getValor().equals("0") || exp1.getValor().equals("false")){
+                    aux1 = false;
+                    paso1 = true;
+                }else{
+                    paso1 = false;
+                }
+                if(exp2.getValor().equals("1") || exp2.getValor().equals("true")){
+                    aux2 = true;
+                    paso2 = true;
+                }else if(exp2.getValor().equals("0") || exp2.getValor().equals("false")){
+                    aux2 = false;
+                    paso2 = true;
+                }else{
+                    paso2 = false;
+                }
+
+                if(paso1 && paso2){
+                    if(aux1 == aux2){
+                        aux.setTipo("booleano");
+                        aux.setValor("true");
+                    }else{
+                        aux.setTipo("booleano");
+                        aux.setValor("false");
+                    }
+                }else{
+                    Ventana.errores.add("Semantico-No se pueden comparar tipos que no sean int, float, char, boolean con == entre ellos-" + String.valueOf(exp1left) + "-" + String.valueOf(exp1right));
+                    aux.setValor("error");
+                    aux.setTipo("error");
+                }
+            }else{
+                Ventana.errores.add("Semantico-No se pueden comparar tipos que no sean int, float, char, boolean con == entre ellos-" + String.valueOf(exp1left) + "-" + String.valueOf(exp1right));
+                aux.setValor("error");
+                aux.setTipo("error");
+            }
+        }else{
+            aux.setTipo("error");
+            aux.setValor("error");
+        }
+        RESULT = aux;
+    :}
+    | EXP:exp1 tnoigual EXP:exp2{:
+        Valor aux = new Valor();
+        if(!exp1.getTipo().equals("error") && !exp2.getTipo().equals("error")){
+            if(exp1.getTipo().equals(exp2.getTipo())){
+                if(exp1.getTipo().equals("entero")){
+                    int aux1 = Integer.parseInt(exp1.getValor());
+                    int aux2 = Integer.parseInt(exp2.getValor());
+                    if(aux1 != aux2){
+                        aux.setTipo("booleano");
+                        aux.setValor("true");
+                    }else{
+                        aux.setTipo("booleano");
+                        aux.setValor("false");
+                    }
+                }else if(exp1.getTipo().equals("decimal")){
+                    float aux1 = Float.parseFloat(exp1.getValor());
+                    float aux2 = Float.parseFloat(exp2.getValor());
+                    if(aux1 != aux2){
+                        aux.setTipo("booleano");
+                        aux.setValor("true");
+                    }else{
+                        aux.setTipo("booleano");
+                        aux.setValor("false");
+                    }
+                }else if(exp1.getTipo().equals("caracter")){
+                    char aux1 = exp1.getValor().charAt(0);
+                    char aux2 = exp2.getValor().charAt(0);
+                    if(aux1 != aux2){
+                        aux.setTipo("booleano");
+                        aux.setValor("true");
+                    }else{
+                        aux.setTipo("booleano");
+                        aux.setValor("false");
+                    }
+                }else if(exp1.getTipo().equals("boolean")){
+                    boolean aux1, aux2;
+                    if(exp1.getValor().equals("true")){
+                        aux1 =  true;
+                    }else{
+                        aux1 = false;
+                    }
+
+                    if(exp2.getValor().equals("false")){
+                        aux2 = true;
+                    }else{
+                        aux2 = false;
+                    }
+                    if(aux1 != aux2){
+                        aux.setTipo("booleano");
+                        aux.setValor("true");
+                    }else{
+                        aux.setTipo("booleano");
+                        aux.setValor("false");
+                    }
+                }else{
+                    Ventana.errores.add("Semantico-No se pueden comparar tipos que no sean int, float, char, boolean con != entre ellos-" + String.valueOf(exp1left) + "-" + String.valueOf(exp1right));
+                    aux.setValor("error");
+                    aux.setTipo("error");
+                }
+            }else if((exp1.getTipo().equals("entero") || exp1.getTipo().equals("decimal") || exp1.getTipo().equals("caracter")) && (exp2.getTipo().equals("entero") || exp2.getTipo().equals("decimal") || exp2.getTipo().equals("caracter"))){
+                float aux1 = 0;
+                float aux2 = 0;
+                if(exp1.getTipo().equals("caracter")){
+                    char ayuda = exp1.getValor().charAt(0);
+                    aux1 = ayuda;
+                }else{
+                    aux1 = Float.parseFloat(exp1.getValor());
+                }
+
+                if(exp2.getTipo().equals("caracter")){
+                    char ayuda = exp2.getValor().charAt(0);
+                    aux2 = ayuda;
+                }else{
+                    aux2 = Float.parseFloat(exp2.getValor());
+                }
+
+                if(aux1 != aux2){
+                    aux.setTipo("booleano");
+                    aux.setValor("true");
+                }else{
+                    aux.setTipo("booleano");
+                    aux.setValor("false");
+                }
+            }else if((exp1.getTipo().equals("entero") || exp1.getTipo().equals("booleano")) && (exp2.getTipo().equals("entero") || exp2.getTipo().equals("booleano"))){
+                boolean aux1 = false;
+                boolean aux2 = false;
+                boolean paso1 = false;
+                boolean paso2 = false;
+                if(exp1.getValor().equals("1") || exp1.getValor().equals("true")){
+                    aux1 = true;
+                    paso1 = true;
+                }else if(exp1.getValor().equals("0") || exp1.getValor().equals("false")){
+                    aux1 = false;
+                    paso1 = true;
+                }else{
+                    paso1 = false;
+                }
+                if(exp2.getValor().equals("1") || exp2.getValor().equals("true")){
+                    aux2 = true;
+                    paso2 = true;
+                }else if(exp2.getValor().equals("0") || exp2.getValor().equals("false")){
+                    aux2 = false;
+                    paso2 = true;
+                }else{
+                    paso2 = false;
+                }
+
+                if(paso1 && paso2){
+                    if(aux1 != aux2){
+                        aux.setTipo("booleano");
+                        aux.setValor("true");
+                    }else{
+                        aux.setTipo("booleano");
+                        aux.setValor("false");
+                    }
+                }else{
+                    Ventana.errores.add("Semantico-No se pueden comparar tipos que no sean int, float, char, boolean con != entre ellos-" + String.valueOf(exp1left) + "-" + String.valueOf(exp1right));
+                    aux.setValor("error");
+                    aux.setTipo("error");
+                }
+            }else{
+                Ventana.errores.add("Semantico-No se pueden comparar tipos que no sean int, float, char, boolean con != entre ellos-" + String.valueOf(exp1left) + "-" + String.valueOf(exp1right));
+                aux.setValor("error");
+                aux.setTipo("error");
+            }
+        }else{
+            aux.setTipo("error");
+            aux.setValor("error");
+        }
+        RESULT = aux;
+    :}
+    | tparentesisabrir EXP:exp tparentesiscerrar{:
+        Valor aux = new Valor();
+        aux.setTipo(exp.getTipo());
+        aux.setValor(exp.getValor());
+        RESULT = aux;
+    :}
+    | EXP:exp tmas tmas{:
+        Valor aux = new Valor();
+        if(!exp.getTipo().equals("error")){
+            if(exp.getTipo().equals("entero") || exp.getTipo().equals("decimal")){
+                float aux1 = Float.parseFloat(exp.getValor());
+                aux1 = aux1 + 1;
+                aux.setValor(String.valueOf(aux1));
+                aux.setTipo(exp.getTipo());
+            }else{
+                Ventana.errores.add("Semantico-El operador de incremento(++). Solo puede usarse con valores numericos.-" + String.valueOf(expleft) + "-" + String.valueOf(expright));
+                aux.setValor("error");
+                aux.setTipo("error");
+            }
+        }else{
+            aux.setTipo("error");
+            aux.setValor("error");
+        }
+        RESULT = aux;
+    :}
+    | EXP:exp tresta tresta{:
+        Valor aux = new Valor();
+        if(!exp.getTipo().equals("error")){
+            if(exp.getTipo().equals("entero") || exp.getTipo().equals("decimal")){
+                float aux1 = Float.parseFloat(exp.getValor());
+                aux1 = aux1 - 1;
+                aux.setValor(String.valueOf(aux1));
+                aux.setTipo(exp.getTipo());
+            }else{
+                Ventana.errores.add("Semantico-El operador de decremento(--). Solo puede usarse con valores numericos.-" + String.valueOf(expleft) + "-" + String.valueOf(expright));
+                aux.setValor("error");
+                aux.setTipo("error");
+            }
+        }else{
+            aux.setTipo("error");
+            aux.setValor("error");
+        }
+        RESULT = aux;
+    :}
+    | tnumero:num{:
+        Valor aux = new Valor();
+        if(num.contains(".")){
+            aux.setTipo("decimal");
+            aux.setValor(num);
+        }else{
+            aux.setTipo("entero");
+            aux.setValor(num);
+        }
+        RESULT = aux;
+    :}
+    | tcadena:cadena{:
+        Valor aux = new Valor();
+        cadena = cadena.replace("\"", "");
+        aux.setTipo("cadena");
+        aux.setValor(cadena);
+        RESULT = aux;
+    :}
+    | tcaracter:caracter{:
+        Valor aux = new Valor();
+        caracter = caracter.replace("'", "");
+        aux.setTipo("caracter");
+        aux.setValor(caracter);
+        RESULT = aux;
+    :}
+    | tid:id{:
+        Valor aux = new Valor();
+        if(ExisteVariable(id)){
+            aux = ObtenerValorVariable(id);
+        }else{
+            Ventana.errores.add("Semantico-La variable: " + id + ", no fue declarada.-" + String.valueOf(idleft) + "-" + String.valueOf(idright));
+            aux.setTipo("error");
+            aux.setValor("error");
+        }
+        if(aux == null){
+            Ventana.errores.add("Semantico-La variable: " + id + ", no fue inicializada con anterioridad.-" + String.valueOf(idleft) + "-" + String.valueOf(idright));
+            aux.setTipo("error");
+            aux.setValor("error");
+        }
+
+        //System.out.println("Existe");
+        //System.out.println(id);
+        //System.out.println(aux.getValor());
+        //System.out.println(aux.getTipo());
+        RESULT = aux;
+    :}
+    | ttrue{:
+        Valor aux = new Valor();
+        aux.setValor("true");
+        aux.setTipo("booleano");
+        RESULT = aux;
+    :}
+    | tfalse{:
+        Valor aux = new Valor();
+        aux.setValor("false");
+        aux.setTipo("booleano");
+        RESULT = aux;
+    :}
+    | RESULTA:result{:
+        Valor aux = new Valor();
+        //System.out.println("result" + result);
+        if(!result.equals("error") && !VerificarDatosResult()){
+            if(result.contains("score:")){
+                String aux1[] = result.split(":");
+                aux.setValor(aux1[1]);
+                aux.setTipo("decimal");
+            }else if(result.contains("cantidad:")){
+                String aux1[] = result.split(":");
+                aux.setValor(aux1[1]);
+                aux.setTipo("entero");
+            }else{
+                aux.setValor(result);
+                aux.setTipo("cadena");
+            }
+        }else{
+            aux.setTipo("error");
+            aux.setValor("error");
+        }
+
+        RESULT = aux;
+    :};

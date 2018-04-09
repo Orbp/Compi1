@@ -1,0 +1,105 @@
+package javaapplication9;
+
+import java_cup.runtime.*;
+import java.util.*;
+
+parser code{:
+    /* *Metodo que se llama automaticamente ante algun error sintactico */
+public void syntax_error(Symbol s){
+    System.out.println("Error en la linea: " + (s.right + 1) + ", columna: " + (s.left + 1) + ". Identificador " + s.value + " no reconocido");
+    //Ventana.errores.add("Sintactico-" + s.value +". No reconocido -" + String.valueOf((s.left + 1)) + "-" + String.valueOf((s.right + 1)));
+}
+
+/* *Metodo que se llama en el momento que ya no es posible una recuperacion de errores */
+public void unrecovered_syntax_error(Symbol s){
+    System.out.println("Error en la linea: " + (s.right + 1) + ", columna: " + (s.left + 1) + ". Identificador " + s.value + " no reconocido");
+}
+:}
+
+action code
+{:
+
+:}
+
+
+terminal String tmas, tmenos, tpor, tdivision, tpa, tpc, televar, tnumero, tdecimal;
+
+non terminal String INICIO, OPERACIONENTERO, OPERACIONDECIMAL;
+
+precedence left tmas, tmenos;
+precedence left tpor, tdivision;
+precedence left televar;
+precedence left tpa;
+
+start with INICIO;
+
+INICIO ::= OPERACIONENTERO:res{:
+                System.out.println("El resultado es: " + res);
+            :}
+        | OPERACIONDECIMAL:res{:
+                System.out.println("El resultaddo es: " + res);
+            :};
+
+OPERACIONENTERO ::= OPERACIONENTERO:op1 tmas OPERACIONENTERO:op2{:
+                    int val1 = Integer.valueOf(op1);
+                    int val2 = Integer.valueOf(op2);
+                    RESULT = String.valueOf(val1 + val2);
+                :}
+                | OPERACIONENTERO:op1 tmenos OPERACIONENTERO:op2{:
+                    int val1 = Integer.valueOf(op1);
+                    int val2 = Integer.valueOf(op2);
+                    RESULT = String.valueOf(val1 - val2);
+                :}
+                |OPERACIONENTERO:op1 tpor OPERACIONENTERO:op2{:
+                    int val1 = Integer.valueOf(op1);
+                    int val2 = Integer.valueOf(op2);
+                    RESULT = String.valueOf(val1 * val2);
+                :}
+                | OPERACIONENTERO:op1 tdivision OPERACIONENTERO:op2{:
+                    int val1 = Integer.valueOf(op1);
+                    int val2 = Integer.valueOf(op2);
+                    RESULT = String.valueOf(Integer.valueOf(val1 / val2));
+                :}
+                | OPERACIONENTERO:op1 televar OPERACIONENTERO:op2{:
+                    int val1 = Integer.valueOf(op1);
+                    int val2 = Integer.valueOf(op2);
+                    RESULT = String.valueOf(Math.pow(Double.valueOf(val1), Double.valueOf(val2));
+                :}
+                | tpa OPERACIONENTERO:op tpc{:
+                    RESULT = op;
+                :}
+                | tnumero:num{:
+                    RESULT = num;
+                :};
+
+OPERACIONDECIMAL ::= OPERACIONDECIMAL:op1 tmas OPERACIONDECIMAL:op2{:
+                    double val1 = Double.valueOf(op1);
+                    double val2 = Double.valueOf(op2);
+                    RESULT = String.valueOf(val1 + val2);
+                :}
+                | OPERACIONDECIMAL:op1 tmenos OPERACIONDECIMAL:op2{:
+                    double val1 = Double.valueOf(op1);
+                    double val2 = Double.valueOf(op2);
+                    RESULT = String.valueOf(val1 - val2);
+                :}
+                |OPERACIONDECIMAL:op1 tpor OPERACIONDECIMAL:op2{:
+                    double val1 = Double.valueOf(op1);
+                    double val2 = Double.valueOf(op2);
+                    RESULT = String.valueOf(val1 * val2);
+                :}
+                | OPERACIONDECIMAL:op1 tdivision OPERACIONDECIMAL:op2{:
+                    double val1 = Double.valueOf(op1);
+                    double val2 = Doubel.valueOf(op2);
+                    RESULT = String.valueOf(val1 + val2);
+                :}
+                | OPERACIONDECIMAL:op1 televar OPERACIONDECIMAL:op2{:
+                    double val1 = Double.valueOf(op1);
+                    double val2 = Double.valueOf(op2);
+                    RESULT = String.valueOf(Math.pow(val1, val2);
+                :}
+                | tpa OPERACIONDECIMAL:op tpc{:
+                    RESULT = op;
+                :}
+                | tdecimal:num{:
+                    RESULT = num;
+                :};

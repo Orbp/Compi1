@@ -1,0 +1,182 @@
+package cliente;
+
+import java_cup.runtime.*;
+
+parser code{:
+/* *Metodo que se llama automaticamente ante algun error sintactico */
+public void syntax_error(Symbol s){
+    System.out.println("Error en la linea: " + (s.right + 1) + ", columna: " + (s.left + 1) + ". Identificador " + s.value + " no reconocido");
+}
+
+/* *Metodo que se llama en el momento que ya no es posible una recuperacion de errores */
+public void unrecovered_syntax_error(Symbol s){
+    System.out.println("Error en la linea: " + (s.right + 1) + ", columna: " + (s.left + 1) + ". Identificador " + s.value + " no reconocido");
+}
+
+Result resultado = new Result();
+
+public Result getReultado(){
+    return resultado;
+}
+
+public void LimpiarResult(){
+    resultado = new Result();
+}
+:}
+
+action code 
+{:
+public void AgregarClases(String clase){
+    if(!clase.equals("")){
+        ResultClases auxclase = new ResultClases();
+        auxclase.setNombre(clase);
+        resultado.AgregarClases(auxclase);
+    }
+}
+
+public void AgregarVariables(String variable){
+    if(!variable.equals("")){
+        String aux[] = variable.split("-");
+        for(int i = 0; i < aux.length; i++){
+            aux[i] = aux[i].replace("\"", "");
+        }
+        ResultVariables var = new ResultVariables();
+        var.setNombre(aux[0]);
+        var.setTipo(aux[1]);
+        var.setFuncion(aux[2]);
+        var.setClase(aux[3]);
+        resultado.AgregarVariables(var);
+    }
+}
+
+public void AgregarMetodos(String metodo){
+    if(!metodo.equals("")){
+        String aux[] = metodo.split("-");
+        for(int i = 0; i < aux.length; i++){
+            aux[i] = aux[i].replace("\"", "");
+        }
+        ResultMetodos metodos = new ResultMetodos();
+        metodos.setNombre(aux[0]);
+        metodos.setTipo(aux[1]);
+        metodos.setParametros(Integer.valueOf(aux[2]));
+        resultado.AgregarMetodos(metodos);
+    }
+}
+
+public void AgregarComentarios(String comentario){
+    if(!comentario.equals("")){
+        ResultComentarios comen = new ResultComentarios();
+        comen.setTexto(comentario);
+        resultado.AgregarComentarios(comen);
+    }
+}
+:}
+
+terminal String tllaveabrir, tllavecerrar, tcorcheteabrir, tcorchetecerrar, tcoma, tscore, tclases, tnombre, tvariables, ttipo, tfuncion, tclase, tmetodos, tparametros, tcomentarios, tnumero, tcadena, tdospuntos, ttexto;
+
+non terminal String INICIO, CLASES, VARIABLES, METODOS, COMENTARIOS, LCLASES, CLASE, LVARIABLES, VARIABLE, LMETODOS, METODO, LCOMENTARIOS, COMENTARIO;
+
+start with INICIO;
+
+INICIO ::= tllaveabrir tscore tdospuntos tcorcheteabrir tnumero:num tcorchetecerrar tcoma CLASES:clases tcoma VARIABLES:variables tcoma METODOS:metodos tcoma  COMENTARIOS:comentarios tllavecerrar{:
+            System.out.println("Score: " + num);
+            System.out.println("Clases: " + clases);
+            System.out.println("Variables: " + variables);
+            System.out.println("Metodos: " + metodos);
+            System.out.println("Comentarios " + comentarios);
+            resultado.setScore(Double.valueOf(num));
+            String aux[] = clases.split(",");
+            for(int i = 0; i < aux.length; i++){
+                aux[i] = aux[i].replace("\"", "");
+                AgregarClases(aux[i]);
+            }
+
+            aux = variables.split(",");
+            for(int i = 0; i < aux.length; i++){
+                AgregarVariables(aux[i]);
+            }
+
+            aux = metodos.split(",");
+            for(int i = 0; i < aux.length; i++){
+                AgregarMetodos(aux[i]);
+            }
+
+            aux = comentarios.split(",");
+            for(int i = 0; i < aux.length; i++){
+                aux[i] = aux[i].replace("\"", "");
+                AgregarComentarios(aux[i]);
+            }
+        :};
+        
+CLASES ::= tclases tdospuntos tcorcheteabrir tllaveabrir LCLASES:clases tllavecerrar tcorchetecerrar{:
+            RESULT = clases;
+        :}
+        | tclases tdospuntos tcorcheteabrir tcorchetecerrar{:
+            System.out.println("Entro a clases");
+            RESULT = "";
+        :};
+
+LCLASES ::= CLASE:clase tcoma LCLASES:lclase{:
+            RESULT = clase + "," + lclase;
+        :}
+        | CLASE:clase{:
+            RESULT = clase;
+        :};
+
+CLASE ::= tnombre tdospuntos tcadena:cadena{:
+            RESULT = cadena;
+        :};
+
+VARIABLES ::= tvariables tdospuntos tcorcheteabrir LVARIABLES:lvariables tcorchetecerrar{:
+                RESULT = lvariables;
+            :}
+            | tvariables tdospuntos tcorcheteabrir tcorchetecerrar{:
+                RESULT = "";
+            :};
+
+LVARIABLES ::= VARIABLE:variable tcoma LVARIABLES:lvariables{:
+                RESULT = variable + "," + lvariables;
+            :}
+            | VARIABLE:variable{:
+                RESULT = variable;
+            :};
+
+VARIABLE ::= tllaveabrir tnombre tdospuntos tcadena:nombre tcoma ttipo tdospuntos tcadena:tipo tcoma tfuncion tdospuntos tcadena:funcion tcoma tclase tdospuntos tcadena:clase tllavecerrar{:
+            RESULT = nombre + "-" + tipo + "-" + funcion + "-" + clase;
+        :};
+
+METODOS ::= tmetodos tdospuntos tcorcheteabrir LMETODOS:metodos tcorchetecerrar{:
+            RESULT = metodos;
+        :}
+            | tmetodos tdospuntos tcorcheteabrir tcorchetecerrar{:
+            RESULT = "";
+        :};
+
+LMETODOS ::= METODO:metodo tcoma LMETODOS:lmetodo{:
+            RESULT = metodo + "," + lmetodo;
+        :}
+            | METODO:metodo{:
+            RESULT = metodo;
+        :};
+
+METODO ::= tllaveabrir tnombre tdospuntos tcadena:nombre tcoma ttipo tdospuntos tcadena:tipo tcoma tparametros tdospuntos tcadena:parametros tllavecerrar{:
+            RESULT = nombre + "-" + tipo + "-" + parametros;
+        :};
+
+COMENTARIOS ::= tcomentarios tdospuntos tcorcheteabrir LCOMENTARIOS:comentarios tcorchetecerrar{:
+                RESULT = comentarios;
+            :}
+                |tcomentarios tdospuntos tcorcheteabrir tcorchetecerrar{:
+                RESULT = "";
+            :};
+
+LCOMENTARIOS ::= COMENTARIO:comentario tcoma LCOMENTARIOS:lcomentario{:
+                RESULT = comentario + "," + lcomentario;
+            :}
+                | COMENTARIO:comentario{:
+                RESULT = comentario;
+            :};
+
+COMENTARIO ::= tllaveabrir ttexto tdospuntos tcadena:comentario tllavecerrar{:
+                RESULT = comentario;
+            :};

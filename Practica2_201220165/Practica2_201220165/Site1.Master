@@ -1,0 +1,25 @@
+﻿<%@ Master Language="C#" AutoEventWireup="true" CodeBehind="Site1.master.cs" Inherits="Practica2_201220165.Site1" %>
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <link rel ="stylesheet" type="text/css" href="Estilos/layout.css" />
+<head runat="server">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title>Practica 2</title>
+</head>
+<body>
+    <form id="form1" runat="server">
+    <div>
+        <h1 align="center"><font face="Arial" color="white">Programa MATT</font></h1>
+    </div>
+        <asp:Panel ID="paneldearchivo" runat="server" Visible="true" HorizontalAlign="Center">
+            <asp:Label ID="label1" runat="server"><font color ="white">Seleccionar archivo</font></asp:Label>
+            &nbsp; &nbsp;
+            <asp:FileUpload ID="FileUpload1" runat="server" />
+            &nbsp;
+            <asp:Button ID="btnSubir" runat="server" Text="Subir"/>
+        </asp:Panel>
+    </form>
+</body>
+</html>

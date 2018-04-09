@@ -1,0 +1,5 @@
+C:\Users\oscar\Documents\Visual Studio 2012\Projects\Practica2_201220165\Practica2_201220165\bin\Practica2_201220165.dll
+C:\Users\oscar\Documents\Visual Studio 2012\Projects\Practica2_201220165\Practica2_201220165\bin\Practica2_201220165.pdb
+C:\Users\oscar\Documents\Visual Studio 2012\Projects\Practica2_201220165\Practica2_201220165\obj\Debug\Practica2_201220165.csprojResolveAssemblyReference.cache
+C:\Users\oscar\Documents\Visual Studio 2012\Projects\Practica2_201220165\Practica2_201220165\obj\Debug\Practica2_201220165.dll
+C:\Users\oscar\Documents\Visual Studio 2012\Projects\Practica2_201220165\Practica2_201220165\obj\Debug\Practica2_201220165.pdb

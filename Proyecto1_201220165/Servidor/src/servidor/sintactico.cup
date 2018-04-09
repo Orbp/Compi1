@@ -1,0 +1,779 @@
+package servidor;
+
+import java_cup.runtime.*;
+import java.util.*;
+
+parser code{:
+
+String clase = "";
+    public void setClase(String pclase){
+        clase = pclase;
+    }
+
+String proyectoactual = "";
+String proyectoactualnombre = "";
+    public void setProyecto(String proyectoactual, String nombre){
+        this.proyectoactual = proyectoactual;
+        this.proyectoactualnombre = nombre;
+    }
+ArrayList<Variables> auxvar = new ArrayList();
+String ambito = "";
+
+/* *Metodo que se llama automaticamente ante algun error sintactico */
+public void syntax_error(Symbol s){
+    //System.out.println("Error en la columna: " + (s.left + 1) + ", linea: " + (s.right + 1) + ". Identificador " + s.value + " no reconocido en clase " + clase);
+    Conexion.errores.add("Sintactico-" + s.value + "-" + (s.left + 1) + "-" + (s.right + 1) + "-" + clase + "-" + proyectoactualnombre);
+}
+
+/* *Metodo que se llama en el momento que ya no es posible una recuperacion de errores */
+public void unrecovered_syntax_error(Symbol s){
+    //System.out.println("Error en la linea: " + (s.right + 1) + ", columna: " + (s.left + 1) + ". Identificador " + s.value + " no reconocido en clase " + clase);
+    Conexion.errores.add("Sintactico-" + s.value + "-" + (s.left + 1) + "-" + (s.right + 1) + "-" + clase + "-" + proyectoactualnombre);
+}
+    Proyecto proyecto1 = new Proyecto();
+    Proyecto proyecto2 = new Proyecto();
+    public Proyecto getProyecto1(){
+        return proyecto1;
+    }
+
+    public Proyecto getProyecto2(){
+        return proyecto2;
+    }
+:}
+
+action code 
+{:
+    public void AgregarVariables(String declaraciones, String ambito){
+        String tipo;
+        String aux[] = declaraciones.split("-");
+        //"AgregarVariables");
+        //"declaraciones " + declaraciones);
+        //"ambito " + ambito);
+        tipo = aux[0];
+        String auxid[] = aux[1].split(",");
+        for(int i = 0; i < auxid.length; i++){
+            Variables var = new Variables();
+            var.setIdentificador(auxid[i]);
+            var.setTipo(tipo);
+            var.setAmbito(ambito);
+            var.setProyecto(clase);
+            if(proyectoactual.equals("Proyecto 1")){
+                proyecto1.AgregarVariable(var);
+            }else{
+                proyecto2.AgregarVariable(var);
+            }
+        }
+    }
+
+    public ArrayList<Variables> Agregarvariablesametodos(String declaraciones){
+        ArrayList<Variables> aux = new ArrayList();
+        String auxid[] = declaraciones.split("\n");
+        for(int i = 0; i < auxid.length; i++){
+            String auxde[] = auxid[i].split("/")[1].split("-");
+            String aux1[] = auxde[1].split(",");
+            String tipo = auxde[0];
+            for(int j = 0; j < aux1.length; j++){
+                Variables var = new Variables();
+                var.setIdentificador(aux1[j]);
+                var.setTipo(tipo);
+                aux.add(var);
+            }
+        }
+        return aux;
+    }
+
+    public ArrayList<Parametros> Agregarparametrosmetodo(String parametros){
+        //ntln("                PARAMETROS " + parametros);
+        ArrayList<Parametros> par = new ArrayList();
+        String aux[] = parametros.split(",");
+        for(int i = 0; i < aux.length; i++){
+            //ntln("                AUX[i] " + aux[i]);
+            String aux1[] = aux[i].split("-");
+            Parametros parametro = new Parametros();
+            parametro.setTipo(aux1[0]);
+            //ntln("                AUX[i] " + aux[i]);
+            parametro.setNombre(aux1[1]);
+            par.add(parametro);
+        }
+        return par;
+    }
+
+    public ArrayList<Metodos> Agregarmetodoclase(String metodo){
+        ArrayList<Metodos> met = new ArrayList();
+        String aux1[] = metodo.split("\n");
+        //("Agregar metodo a clase");
+        //(metodo);
+        for(int i = 0; i < aux1.length; i++){
+            String aux[] = aux1[i].split("/")[1].split("-");
+            Metodos meto = new Metodos();
+            meto.setNombre(aux[1]);
+            meto.setTipo(aux[0]);
+            met.add(meto);
+        }
+        return met;
+    }
+
+    public void AgregarMetodos(String id, ArrayList<Parametros> parametros, String tipo, ArrayList<Variables> variables, int numlineas){
+        Metodos metodo = new Metodos();
+        metodo.setNombre(id);
+        //ntln("AgregarMetodos");
+        //ntln(id);
+        metodo.setParametros(parametros);
+        for(int i = 0; i < parametros.size(); i++){
+            //ntln(parametros.get(i).getNombre() + " " + parametros.get(i).getTipo());
+        }
+        metodo.setTipo(tipo);
+        //ntln(tipo);
+        metodo.setVariables(variables);
+        for(int i = 0; i < variables.size(); i++){
+            //ntln(variables.get(i).getIdentificador() + " " + variables.get(i).getTipo());
+        }
+        metodo.setCantlineas(numlineas + 1);
+        if(proyectoactual.equals("Proyecto 1")){
+            proyecto1.AgregarMetodos(metodo);
+        }else{
+            proyecto2.AgregarMetodos(metodo);
+        }
+    }
+
+    public void AgregarClase(String id, ArrayList<Metodos> metodo){
+        Clase clase = new Clase();
+        clase.setId(id);
+        clase.setMetodos(metodo);
+        if(proyectoactual.equals("Proyecto 1")){
+            proyecto1.AgregarClase(clase);
+        }else{
+            proyecto2.AgregarClase(clase);
+        }
+    }
+:}
+
+terminal String tpuntoycoma, tllaveabrir, tpor, tpunto, tparentesiscerrar, tigual, timport, tclase, tint, tbool, tstring, tchar, tdouble, tif, telse, tfor, twhile, tdo, tswitch, tdp;
+terminal String tprivate, tpublic, tprotected, tfinal, tbreak, treturn, tnew, tcase, tdefault, tmas, tmenos, tdiv, tand, tor, tnot, tcoma, tthis, tmenor, tmayor, tmenorigual, tmayorigual, tiguala, tdiferente, tfalse;
+terminal String ttrue, tnumero, tid, tcadena, tcaracter, tabstract, tfinally, tcontinue, tinterface, tthrow, tnative, ttry, tcatch, timplements, tpackage, tsuper, textends;
+terminal String tthrows, toverride, tnull, tmain, tstatic, targ;
+terminal String tparentesisabrir, tllavecerrar;
+
+non terminal String INICIO, LCLASE, CLASE, LIMPORT, IMPORT, IMPORTAR, CONTENIDO, VISIBILIDAD, LSENTENCIAS, SENTENCIAS, DECLARACION, LID, ASIGNACION, LMETODO, METODO, FUNCION, CONSTRUCTOR, LPARAMETROS;
+non terminal String PARAMETRO, TIPO, LSENTENCIASMETFUN, SENTENCIASMETFUN, IFMETFUN, ELSEMETFUN, FORMETFUN, WHILEMETFUN, DOWHILEMETFUN, SWITCHMETFUN, CASOSMETFUN, LLAMADA, FOR, AUMENTO, LPARAMETROSLLAMADA, METODOS;
+non terminal String FUNCIONES, ID, AUXLLAMADA, LIDA, IMPRIMIR, EXP, TIPOMETODOS;
+
+precedence left tmas, tmenos;
+precedence left tpor, tdiv;
+precedence left tmenor, tmenorigual, tmayor, tmayorigual, tigual, tdiferente, tiguala;
+precedence left tand, tor;
+precedence right tnot;
+precedence left tparentesisabrir;
+
+start with INICIO;
+
+INICIO ::= LCLASE;
+
+LCLASE ::= CLASE LCLASE
+        | CLASE;
+
+CLASE ::= LIMPORT CONTENIDO
+        | CONTENIDO;
+
+LIMPORT ::= IMPORT LIMPORT
+        | IMPORT;
+
+IMPORT ::= timport IMPORTAR;
+
+IMPORTAR ::= tid tpunto IMPORTAR
+            | tpor tpuntoycoma
+            | tid tpuntoycoma
+            | error tpuntoycoma;
+
+CONTENIDO ::= VISIBILIDAD tclase tid:id tllaveabrir LSENTENCIAS:sentencias tllavecerrar{:
+                ArrayList<Metodos> aux = new ArrayList();
+                if(sentencias.contains("metodo/")){
+                    aux = Agregarmetodoclase(sentencias);
+                }
+                AgregarClase(id, aux);
+            :}
+            | VISIBILIDAD tclase tid:id tllaveabrir tllavecerrar{:
+                AgregarClase(id, new ArrayList());
+            :}
+            | error tllaveabrir LSENTENCIAS tllavecerrar{::}
+            | error tllaveabrir tllavecerrar;
+
+VISIBILIDAD ::= tpublic
+            | tprivate
+            | tprotected
+            | tfinal;
+
+LSENTENCIAS ::= SENTENCIAS:sentencias LSENTENCIAS:lsentencias{:
+                if(sentencias.contains("metodo/") && lsentencias.contains("metodo/")){
+                    RESULT = sentencias + lsentencias;
+                }else if(sentencias.contains("metoddo/")){
+                    RESULT = sentencias;
+                }else if(lsentencias.contains("metodo/")){
+                    RESULT = lsentencias;
+                }else{
+                    RESULT = "";
+                }
+            :}
+            | SENTENCIAS:sentencias{:
+                if(sentencias.contains("metodo/")){
+                    RESULT = sentencias;
+                }else{
+                    RESULT = "";
+                }
+            :};
+
+SENTENCIAS ::= ASIGNACION:asignacion{:
+                if(!asignacion.equals("")){
+                    AgregarVariables(asignacion, "global");
+                }
+                RESULT = "";
+            :}
+            | DECLARACION:declaracion{:
+                AgregarVariables(declaracion, "global");
+                RESULT = "";
+            :}
+            | CONSTRUCTOR:constructor{:
+                RESULT = constructor;
+            :}
+            | METODOS:metodos{:
+                RESULT = metodos;
+            :}
+            | error tpuntoycoma
+            | error tllaveabrir LSENTENCIASMETFUN tllavecerrar
+            | error tllaveabrir tllavecerrar;
+
+DECLARACION ::= VISIBILIDAD TIPO:tipo LID:lid tpuntoycoma{:
+                RESULT = tipo + "-" + lid;
+            :}
+            | TIPO:tipo LID:lid tpuntoycoma{:
+                RESULT = tipo + "-" + lid;
+            :};
+
+ASIGNACION ::= VISIBILIDAD TIPO:tipo LIDA:lid tpuntoycoma{:
+                RESULT = tipo + "-" + lid;
+            :}
+            | TIPO:tipo LIDA:lid tpuntoycoma{:
+                RESULT = tipo + "-" + lid;
+            :}
+            | LIDA tpuntoycoma{:
+                RESULT = "";
+            :};
+
+TIPO ::= tint{:RESULT = "int";:}
+        | tstring{:RESULT = "String";:}
+        | tbool{:RESULT = "boolean";:}
+        | tchar{:RESULT = "char";:}
+        | tdouble{:RESULT = "double";:}
+        | tid:id{:RESULT = id;:};
+
+LID ::= tid:id tcoma LID:id2{:RESULT = id + "," + id2;:}
+    | tid:id{:RESULT = id;:};
+
+LIDA ::= tid:id tigual EXP tcoma LIDA:id2{:RESULT = id + "," + id2;:}
+    | tid:id tmas tigual EXP tcoma LIDA:id2{:RESULT = id + "," + id2;:}
+    | tid:id tmenos tigual EXP tcoma LIDA:id2{:RESULT = id + "," + id2;:}
+    | tid:id tmas tmas tcoma LIDA:id2{:RESULT = id + "," + id2;:}
+    | tid:id tmenos tmenos tcoma LIDA:id2{:RESULT = id + "," + id2;:}
+    | tmas tmas tid:id tcoma LIDA:id2{:RESULT = id + "," + id2;:}
+    | tmenos tmenos tid:id tcoma LIDA:id2{:RESULT = id + "," + id2;:}
+    | tid:id tigual tnew TIPO tparentesisabrir LPARAMETROSLLAMADA tparentesiscerrar tcoma LIDA:id2{:RESULT = id + "," + id2;:}
+    | tid:id tigual tnew TIPO tparentesisabrir tparentesiscerrar tcoma LIDA:id2{:RESULT = id + "," + id2;:}
+    | tid:id tigual tnull tcoma LIDA:id2{:RESULT = id + "," + id2;:}
+    | tid:id tigual tid:id2 tigual LIDA:id3{:RESULT = id + "," + id2 + "," + id3;:} 
+    | tid:id tcoma LIDA:id2{:RESULT = id + "," + id2;:}
+    | tid:id tigual EXP{:RESULT = id;:}
+    | tid:id tmas tigual EXP{:RESULT = id;:}
+    | tid:id tmenos tigual EXP{:RESULT = id;:}
+    | tid:id tmas tmas{:RESULT = id;:}
+    | tid:id tmenos tmenos{:RESULT = id;:}
+    | tmas tmas tid:id{:RESULT = id;:}
+    | tmenos tmenos tid:id{:RESULT = id;:}
+    | tid:id tigual tnew TIPO tparentesisabrir LPARAMETROSLLAMADA tparentesiscerrar{:RESULT = id;:}
+    | tid:id tigual tnew TIPO tparentesisabrir tparentesiscerrar{:RESULT = id;:}
+    | tid:id tigual tnull{:RESULT = id;:};
+
+CONSTRUCTOR ::= VISIBILIDAD:inicio tid:id tparentesisabrir LPARAMETROS:parametros tparentesiscerrar tllaveabrir LSENTENCIASMETFUN:sentencias tllavecerrar:fin{:
+                //"Metodo: " + id);
+                //"Sentencias: " + sentencias);
+                int principio = (inicioright + 1), terminar = (finright + 1);
+                ArrayList<Variables> auxvar = new ArrayList();
+                if(sentencias.contains("declaracion/")){
+                    String aux[] = sentencias.split("\n");
+                    auxvar = Agregarvariablesametodos(sentencias);
+                    for(int i = 0; i < aux.length; i++){
+                        String auxid[] = aux[i].split("/");
+                        AgregarVariables(auxid[1], id);
+                    }
+                }
+                AgregarMetodos(id, Agregarparametrosmetodo(parametros), "void", auxvar, terminar - principio);
+                RESULT = "metodo/void-" + id + "\n";
+            :}
+            | VISIBILIDAD:inicio tid:id tparentesisabrir tparentesiscerrar tllaveabrir LSENTENCIASMETFUN:sentencias tllavecerrar:fin{:
+                //"Metodo: " + id);
+                //"Sentencias: " + sentencias);
+                int principio = (inicioright + 1), terminar = (finright + 1);
+                ArrayList<Variables> auxvar = new ArrayList();
+                if(sentencias.contains("declaracion/")){
+                    String aux[] = sentencias.split("\n");
+                    auxvar = Agregarvariablesametodos(sentencias);
+                    for(int i = 0; i < aux.length; i++){
+                        String auxid[] = aux[i].split("/");
+                        AgregarVariables(auxid[1], id);
+                    }
+                }
+                AgregarMetodos(id, new ArrayList(), "void", auxvar, terminar - principio);
+                RESULT = "metodo/void-" + id + "\n";
+            :}
+            | VISIBILIDAD:inicio tid:id tparentesisabrir LPARAMETROS:parametros tparentesiscerrar tllaveabrir tllavecerrar:fin{:
+                int principio = (inicioright + 1), terminar = (finright + 1);
+                AgregarMetodos(id, Agregarparametrosmetodo(parametros), "void", new ArrayList(), terminar - principio);
+                RESULT = "metodo/void-" + id + "\n";
+            :}
+            | VISIBILIDAD:inicio tid:id tparentesisabrir tparentesiscerrar tllaveabrir tllavecerrar:fin{:
+                int principio = (inicioright + 1), terminar = (finright + 1);
+                AgregarMetodos(id, new ArrayList(), "void", new ArrayList(), terminar - principio);
+                RESULT = "metodo/void-" + id + "\n";
+            :}
+            | tid:id tparentesisabrir:inicio LPARAMETROS:parametros tparentesiscerrar tllaveabrir LSENTENCIASMETFUN:sentencias tllavecerrar:fin{:
+                //"Metodo: " + id);
+                //"Sentencias: " + sentencias);
+                int principio = (idright + 1), terminar = (finright + 1);
+                ArrayList<Variables> auxvar = new ArrayList();
+                if(sentencias.contains("declaracion/")){
+                    auxvar = Agregarvariablesametodos(sentencias);
+                    String aux[] = sentencias.split("\n");
+                    for(int i = 0; i < aux.length; i++){
+                        String auxid[] = aux[i].split("/");
+                        AgregarVariables(auxid[1], id);
+                    }
+                }
+                //ArrayList<Parametros> para = Agregarparametrosmetodo(parametros);
+                AgregarMetodos(id, Agregarparametrosmetodo(parametros), "void", auxvar, terminar - principio);
+                RESULT = "metodo/void-" + id + "\n";
+            :}
+            | tid:id tparentesisabrir:inicio tparentesiscerrar tllaveabrir LSENTENCIASMETFUN:sentencias tllavecerrar:fin{:
+                //"Metodo: " + id);
+                //"Sentencias: " + sentencias);
+                int principio = (idright + 1), terminar = (finright + 1);
+                ArrayList<Variables> auxvar = new ArrayList();
+                if(sentencias.contains("declaracion/")){
+                    auxvar = Agregarvariablesametodos(sentencias);
+                    String aux[] = sentencias.split("\n");
+                    for(int i = 0; i < aux.length; i++){
+                        String auxid[] = aux[i].split("/");
+                        AgregarVariables(auxid[1], id);
+                    }
+                }
+                AgregarMetodos(id, new ArrayList(), "void", auxvar, terminar - principio);
+                RESULT = "metodo/void-" + id + "\n";
+            :}
+            | tid:id tparentesisabrir:inicio LPARAMETROS:parametros tparentesiscerrar tllaveabrir tllavecerrar:fin{:
+                //ArrayList<Parametros> para = Agregarparametrosmetodo(parametros);
+                int principio = (idright + 1), terminar = (finright + 1);
+                AgregarMetodos(id, Agregarparametrosmetodo(parametros), "void", new ArrayList(), terminar - principio);
+                RESULT = "metodo/void-" + id + "\n";
+            :}
+            | tid:id tparentesisabrir:inicio tparentesiscerrar tllaveabrir tllavecerrar:fin{:
+                int principio = (idright + 1), terminar = (finright + 1);
+                AgregarMetodos(id, new ArrayList(), "void", new ArrayList(), terminar - principio);
+                RESULT = "metodo/void-" + id + "\n";
+            :};
+
+METODOS ::= tpublic:inicio tstatic TIPO:tipo tmain:id tparentesisabrir tstring tid:idpara targ tparentesiscerrar tllaveabrir LSENTENCIASMETFUN:sentencias tllavecerrar:fin{:
+                //tipo + ": " + id);
+                //"Sentencias: " + sentencias);
+                int principio = (inicioright + 1), terminar = (finright + 1);
+                ArrayList<Variables> auxvar = new ArrayList();
+                if(sentencias.contains("declaracion/")){
+                    String aux[] = sentencias.split("\n");
+                    auxvar = Agregarvariablesametodos(sentencias);
+                    for(int i = 0; i < aux.length; i++){
+                        String auxid[] = aux[i].split("/");
+                        AgregarVariables(auxid[1], id);
+                    }
+                }
+                //ArrayList<Parametros> para = Agregarparametrosmetodo("String[]-" + idpara);
+                AgregarMetodos(id, Agregarparametrosmetodo("String[]-" + idpara), tipo, auxvar, terminar - principio);
+                RESULT = "metodo/" + tipo + "-" + id + "\n";
+            :}
+            | tpublic:inicio tstatic TIPO:tipo tmain:id tparentesisabrir tstring tid:idpara targ tparentesiscerrar tllaveabrir tllavecerrar:fin{:
+                int principio = (inicioright + 1), terminar = (finright + 1);
+                AgregarMetodos(id, Agregarparametrosmetodo("String[]-" + idpara), tipo, new ArrayList(), terminar - principio);
+                //ArrayList<Parametros> para = Agregarparametrosmetodo("String[]-" + idpara);
+                RESULT = "metodo/" + tipo + "-" + id + "\n";
+            :}
+            | tpublic:inicio tstatic TIPO:tipo tmain:id tparentesisabrir tstring targ tid:idpara tparentesiscerrar tllaveabrir LSENTENCIASMETFUN:sentencias tllavecerrar:fin{:
+                //tipo + ": " + id);
+                //"Sentencias: " + sentencias);
+                ArrayList<Variables> auxvar = new ArrayList();
+                int principio = (inicioright + 1), terminar = (finright + 1);
+                if(sentencias.contains("declaracion/")){
+                    auxvar = Agregarvariablesametodos(sentencias);
+                    String aux[] = sentencias.split("\n");
+                    for(int i = 0; i < aux.length; i++){
+                        String auxid[] = aux[i].split("/");
+                        AgregarVariables(auxid[1], id);
+                    }
+                }
+                //ArrayList<Parametros> para = Agregarparametrosmetodo("String[]-" + idpara);
+                AgregarMetodos(id, Agregarparametrosmetodo("String[]-" + idpara), tipo, auxvar, terminar - principio);
+                RESULT = "metodo/" + tipo + "-" + id + "\n";
+            :}
+            | tpublic:inicio tstatic TIPO:tipo tmain:id tparentesisabrir tstring targ tid:idpara tparentesiscerrar tllaveabrir tllavecerrar:fin{:
+                //ArrayList<Parametros> para = Agregarparametrosmetodo("String[]-" + idpara);
+                int principio = (inicioright + 1), terminar = (finright + 1);
+                AgregarMetodos(id, Agregarparametrosmetodo("String[]-" + idpara), tipo, new ArrayList(), terminar - principio);
+                RESULT = "metodo/" + tipo + "-" + id + "\n";
+            :}
+            | VISIBILIDAD:inicio TIPO:tipo tid:id tparentesisabrir LPARAMETROS:parametros tparentesiscerrar tllaveabrir LSENTENCIASMETFUN:sentencias tllavecerrar:fin{:
+                //tipo + ": " + id);
+                //"Sentencias: " + sentencias);
+                int principio = (inicioright + 1), terminar = (finright + 1);
+                ArrayList<Variables> auxvar = new ArrayList();
+                if(sentencias.contains("declaracion/")){
+                    auxvar = Agregarvariablesametodos(sentencias);
+                    String aux[] = sentencias.split("\n");
+                    for(int i = 0; i < aux.length; i++){
+                        String auxid[] = aux[i].split("/");
+                        AgregarVariables(auxid[1], id);
+                    }
+                }
+                //ArrayList<Parametros> para = Agregarparametrosmetodo(parametros);
+                AgregarMetodos(id, Agregarparametrosmetodo(parametros), tipo, auxvar, terminar - principio);
+                RESULT = "metodo/" + tipo + "-" + id + "\n";
+            :}
+            | VISIBILIDAD:inicio TIPO:tipo tid:id tparentesisabrir tparentesiscerrar tllaveabrir LSENTENCIASMETFUN:sentencias tllavecerrar:fin{:
+                //tipo + ": " + id);
+                //"Sentencias: " + sentencias);
+                int principio = (inicioright + 1), terminar = (finright + 1);
+                ArrayList<Variables> auxvar = new ArrayList();
+                if(sentencias.contains("declaracion/")){
+                    auxvar = Agregarvariablesametodos(sentencias);
+                    String aux[] = sentencias.split("\n");
+                    for(int i = 0; i < aux.length; i++){
+                        String auxid[] = aux[i].split("/");
+                        AgregarVariables(auxid[1], id);
+                    }
+                }
+                AgregarMetodos(id, new ArrayList(), tipo, auxvar, terminar - principio);
+                RESULT = "metodo/" + tipo + "-" + id + "\n";
+            :}
+            | VISIBILIDAD:inicio TIPO:tipo tid:id tparentesisabrir LPARAMETROS:parametros tparentesiscerrar tllaveabrir tllavecerrar:fin{:
+                int principio = (inicioright + 1), terminar = (finright + 1);
+                AgregarMetodos(id, Agregarparametrosmetodo(parametros), tipo, new ArrayList(), terminar - principio);
+                //ArrayList<Parametros> para = Agregarparametrosmetodo(parametros);
+                RESULT = "metodo/" + tipo + "-" + id + "\n";
+            :}
+            | VISIBILIDAD:inicio TIPO:tipo tid:id tparentesisabrir tparentesiscerrar tllaveabrir tllavecerrar:fin{:
+                int principio = (inicioright + 1), terminar = (finright + 1);
+                AgregarMetodos(id, new ArrayList(), tipo, new ArrayList(), terminar - principio);
+                RESULT = "metodo/" + tipo + "-" + id + "\n";
+            :}
+            | TIPO:tipo tid:id tparentesisabrir LPARAMETROS:parametros tparentesiscerrar tllaveabrir LSENTENCIASMETFUN:sentencias tllavecerrar:fin{:
+                //tipo + ": " + id);
+                //"Sentencias: " + sentencias);
+                int principio = (tiporight + 1), terminar = (finright + 1);
+                ArrayList<Variables> auxvar = new ArrayList();
+                if(sentencias.contains("declaracion/")){
+                    auxvar = Agregarvariablesametodos(sentencias);
+                    String aux[] = sentencias.split("\n");
+                    for(int i = 0; i < aux.length; i++){
+                        String auxid[] = aux[i].split("/");
+                        AgregarVariables(auxid[1], id);
+                    }
+                }
+                //ArrayList<Parametros> para = Agregarparametrosmetodo(parametros);
+                AgregarMetodos(id, Agregarparametrosmetodo(parametros), tipo, auxvar, terminar - principio);
+                RESULT = "metodo/" + tipo + "-" + id + "\n";
+            :}
+            | TIPO:tipo tid:id tparentesisabrir:inicio tparentesiscerrar tllaveabrir LSENTENCIASMETFUN:sentencias tllavecerrar:fin{:
+                //tipo + ": " + id);
+                //"Sentencias: " + sentencias);
+                int principio = (tiporight + 1), terminar = (finright + 1);
+                ArrayList<Variables> auxvar = new ArrayList();
+                if(sentencias.contains("declaracion/")){
+                    auxvar = Agregarvariablesametodos(sentencias);
+                    String aux[] = sentencias.split("\n");
+                    for(int i = 0; i < aux.length; i++){
+                        String auxid[] = aux[i].split("/");
+                        AgregarVariables(auxid[1], id);
+                    }
+                }
+                AgregarMetodos(id, new ArrayList(), tipo, auxvar, terminar - principio);
+                RESULT = "metodo/" + tipo + "-" + id + "\n";
+            :}
+            | TIPO:tipo tid:id tparentesisabrir:inicio LPARAMETROS:parametros tparentesiscerrar tllaveabrir tllavecerrar:fin{:
+                int principio = (tiporight + 1), terminar = (finright + 1);
+                AgregarMetodos(id, Agregarparametrosmetodo(parametros), tipo, new ArrayList(), terminar - principio);
+                //ArrayList<Parametros> para = Agregarparametrosmetodo(parametros);
+                RESULT = "metodo/" + tipo + "-" + id + "\n";
+            :}
+            | TIPO:tipo tid:id tparentesisabrir:inicio tparentesiscerrar tllaveabrir tllavecerrar:fin{:
+                int principio = (tiporight + 1), terminar = (finright + 1);
+                AgregarMetodos(id, new ArrayList(), tipo, new ArrayList(), terminar - principio);
+                RESULT = "metodo/" + tipo + "-" + id + "\n";
+            :};
+
+EXP ::= EXP tpor EXP
+    | EXP tmas EXP
+    | EXP tmenos EXP
+    | EXP tdiv EXP
+    | EXP tand EXP
+    | EXP tor EXP
+    | tnot EXP
+    | tmenos EXP
+    | EXP tmenor EXP
+    | EXP tmayor EXP
+    | EXP tmenorigual EXP
+    | EXP tmayorigual EXP
+    | EXP tiguala EXP
+    | EXP tdiferente EXP
+    | tparentesisabrir EXP tparentesiscerrar
+    | EXP tmas tmas
+    | EXP tmenos tmenos
+    | tnumero
+    | tcadena
+    | tid
+    | tcaracter
+    | ttrue
+    | tfalse
+    | LLAMADA;
+
+LLAMADA ::= tid tparentesisabrir LPARAMETROSLLAMADA tparentesiscerrar
+        | tid tparentesisabrir tparentesiscerrar
+        | tid AUXLLAMADA;
+
+AUXLLAMADA ::= tpunto tid AUXLLAMADA
+            | tpunto tid tparentesisabrir LPARAMETROSLLAMADA tparentesiscerrar
+            | tpunto tid tparentesisabrir tparentesiscerrar
+            | tpunto tid;
+
+LPARAMETROSLLAMADA ::= EXP tcoma LPARAMETROSLLAMADA
+                    | EXP;
+
+LPARAMETROS ::= TIPO:tipo tid:id tcoma LPARAMETROS:lparametros{:
+                RESULT = tipo + "-" + id + "," + lparametros;
+            :}
+            | TIPO:tipo tid:id{:
+                RESULT = tipo + "-" + id;
+            :};
+
+LSENTENCIASMETFUN ::= SENTENCIASMETFUN:sentencias LSENTENCIASMETFUN:lsentencias{:
+                        if(sentencias.contains("declaracion/") && lsentencias.contains("declaracion/")){
+                            RESULT = sentencias + lsentencias;
+                        }else if(sentencias.contains("declaracion/")){
+                            RESULT = sentencias;
+                        }else if(lsentencias.contains("declaracion/")){
+                            RESULT = lsentencias;
+                        }else{
+                            RESULT = "";
+                        }
+                    :}
+                        | SENTENCIASMETFUN:sentencias{:
+                        if(sentencias.contains("declaracion/")){
+                            RESULT = sentencias;
+                        }else{
+                            RESULT = "";
+                        }
+                    :};
+
+SENTENCIASMETFUN ::= DECLARACION:declaracion{:
+                        //"declaracion " + declaracion);
+                        RESULT = "declaracion/" + declaracion + "\n";
+                    :}
+                    | ASIGNACION:asignacion{:
+                        if(!asignacion.equals("")){
+                            //"DECLARACION " + asignacion);
+                            RESULT = "declaracion/" + asignacion + "\n";
+                        }else{
+                            RESULT = "";
+                        }
+                    :}
+                    | IFMETFUN:sentencia{:
+                        if(sentencia.contains("declaracion/")){
+                            RESULT = sentencia;
+                        }else{
+                            RESULT = "";
+                        }
+                    :}
+                    | FORMETFUN:sentencia{:
+                        if(sentencia.contains("declaracion/")){
+                            RESULT = sentencia;
+                        }else{
+                            RESULT = "";
+                        }
+                    :}
+                    | WHILEMETFUN:sentencia{:
+                        if(sentencia.contains("declaracion/")){
+                            RESULT = sentencia;
+                        }else{
+                            RESULT = "";
+                        }
+                    :}
+                    | DOWHILEMETFUN:sentencia{:
+                        if(sentencia.contains("declaracion/")){
+                            RESULT = sentencia;
+                        }else{
+                            RESULT = "";
+                        }
+                    :}
+                    | SWITCHMETFUN:sentencia{:
+                        if(sentencia.contains("declaracion/")){
+                            RESULT = sentencia;
+                        }else{
+                            RESULT = "";
+                        }
+                    :}
+                    | LLAMADA tpuntoycoma{:
+                        //"Encontre una llamada");
+                        RESULT = "";
+                    :}
+                    | treturn EXP tpuntoycoma{:
+                        //"Encontre un return");
+                        RESULT = "";
+                    :}
+                    | tbreak tpuntoycoma{:
+                        //"Encontre un break");
+                        RESULT = "";
+                    :}
+                    | error tpuntoycoma{:
+                        RESULT = "";
+                    :}
+                    | error tllavecerrar;
+
+IFMETFUN ::= tif tparentesisabrir EXP tparentesiscerrar tllaveabrir LSENTENCIASMETFUN:sentencias tllavecerrar ELSEMETFUN:elsem{:
+                if(sentencias.contains("declaracion/") && elsem.contains("declaracion/")){
+                    RESULT = sentencias + elsem;
+                }else if(sentencias.contains("declaracion/")){
+                    RESULT = sentencias;
+                }else if(elsem.contains("declaracion/")){
+                    RESULT = elsem;
+                }else{
+                    RESULT = "";
+                }
+            :}
+        | tif tparentesisabrir EXP tparentesiscerrar tllaveabrir tllavecerrar ELSEMETFUN:elsem{:
+                if(elsem.contains("declaracion/")){
+                    RESULT = elsem;
+                }else{
+                    RESULT = "";
+                }
+            :};
+
+ELSEMETFUN ::= telse tif tparentesisabrir EXP tparentesiscerrar tllaveabrir LSENTENCIASMETFUN:sentencias tllavecerrar ELSEMETFUN:elsem{:
+                if(sentencias.contains("declaracion/") && elsem.contains("declaracion/")){
+                    RESULT = sentencias + elsem;
+                }else if(sentencias.contains("declaracion/")){
+                    RESULT = sentencias;
+                }else if(elsem.contains("declaracion/")){
+                    RESULT = elsem;
+                }else{
+                    RESULT = "";
+                }
+            :}
+            | telse tif tparentesisabrir EXP tparentesiscerrar tllaveabrir tllavecerrar ELSEMETFUN:elsem{:
+                if(elsem.contains("declaracion/")){
+                    RESULT = elsem;
+                }else{
+                    RESULT = "";
+                }
+            :}
+            | telse tllaveabrir LSENTENCIASMETFUN:sentencias tllavecerrar{:
+                if(sentencias.contains("declaracion/")){
+                    RESULT = sentencias;
+                }else{
+                    RESULT = "";
+                }
+            :}
+            | telse tllaveabrir tllavecerrar{:
+                RESULT = "";
+            :}
+            | {:RESULT = "";:};
+
+SWITCHMETFUN ::= tswitch tparentesisabrir EXP tparentesiscerrar tllaveabrir CASOSMETFUN:casos tllavecerrar{:
+                if(casos.contains("declaracion/")){
+                    RESULT = casos;
+                }else{
+                    RESULT = "";
+                }
+            :};
+
+CASOSMETFUN ::= tcase EXP tdp LSENTENCIASMETFUN:sentencias CASOSMETFUN:casos{:
+                if(sentencias.contains("declaracion/") && casos.contains("declaracion/")){
+                    RESULT = sentencias + casos;
+                }else if(sentencias.contains("declaracion/")){
+                    RESULT = sentencias;
+                }else if(casos.contains("declaracion/")){
+                    RESULT = casos;
+                }else{
+                    RESULT = "";
+                }
+            :}
+            | tcase EXP tdp CASOSMETFUN:casos{:
+                if(casos.contains("declaracion/")){
+                    RESULT = casos;
+                }else{
+                    RESULT = "";
+                }
+            :}
+            | tdefault tdp LSENTENCIASMETFUN:sentencias{:
+                if(sentencias.contains("declaracion/")){
+                    RESULT = sentencias;
+                }else{
+                    RESULT = "";
+                }
+            :}
+            | tdefault tdp{:RESULT = "";:}
+            | {:RESULT = "";:};
+
+DOWHILEMETFUN ::= tdo tllaveabrir LSENTENCIASMETFUN:sentencias tllavecerrar twhile tparentesisabrir EXP tparentesiscerrar tpuntoycoma{:
+                if(sentencias.contains("declaracion/")){
+                    RESULT = sentencias;
+                }else{
+                    RESULT = "";
+                }
+            :}
+            | tdo tllaveabrir tllavecerrar twhile tparentesisabrir EXP tparentesiscerrar tpuntoycoma{:RESULT = "";:};
+
+WHILEMETFUN::= twhile tparentesisabrir EXP tparentesiscerrar tllaveabrir LSENTENCIASMETFUN:sentencias tllavecerrar{:
+                if(sentencias.contains("declaracion/")){
+                    RESULT = sentencias;
+                }else{
+                    RESULT = "";
+                }
+            :}
+            | twhile tparentesisabrir EXP tparentesiscerrar tllaveabrir tllavecerrar{:RESULT = "";:};
+
+FORMETFUN ::= tfor tparentesisabrir FOR:aumentofor tparentesiscerrar tllaveabrir LSENTENCIASMETFUN:sentencias tllavecerrar{:
+                if(sentencias.contains("declaracion/") && aumentofor.contains("declaracion/")){
+                    RESULT = sentencias + aumentofor;
+                }else if(sentencias.contains("declaracion/")){
+                    RESULT = sentencias;
+                }else if(aumentofor.contains("declaracion/")){
+                    RESULT = aumentofor;
+                }else{
+                    RESULT = "";
+                }
+            :}
+        | tfor tparentesisabrir FOR:aumentofor tparentesiscerrar tllaveabrir tllavecerrar{:
+                if(aumentofor.contains("declaracion/")){
+                    RESULT = aumentofor;
+                }else{
+                    RESULT = "";
+                }
+            :};
+
+FOR ::= TIPO:tipo tid:id tigual EXP tpuntoycoma EXP tpuntoycoma AUMENTO{:
+            RESULT = "declaracion/" + tipo + "-" + id + "\n";
+        :}
+    | tid tigual EXP tpuntoycoma EXP tpuntoycoma AUMENTO{:
+            RESULT = "";
+        :}
+    | error tpuntoycoma{:RESULT = "";:};
+
+AUMENTO ::= tid tmas tmas
+        | tid tmenos tmenos
+        | tid tmas tigual EXP
+        | tid tmenos tigual EXP
+        | tid tigual EXP;
+

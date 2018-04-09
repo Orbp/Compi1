@@ -1,0 +1,443 @@
+package practica1_201220165;
+
+import java_cup.runtime.*;
+
+parser code
+{:
+public String contenido = "";
+public String nombre = "";
+private boolean tienescanner = false;
+private int identaciones = 1;
+
+/**Metodo que se llama automaticamente ante algun error sintactico.*/
+public void syntax_error(Symbol s){
+    System.out.println("Error en la linea: " + (s.right + 1) + " Columna: " + (s.left + 1) + ". Identificador " + s.value + " no reconocido");
+    Ventana.errores.add("Sintactico-" + s.value + "-" + (s.left+1) + "-" + (s.right+1));
+}
+
+/**Metodo al que se llama en el momento que ya no es posible una recuperacion de errores*/
+public void unrecovered_syntax_error(Symbol s) throws java.lang.Exception{
+    System.out.println("Error en la linea: " + (s.right + 1) + " Columna: " + (s.left + 1) + ". Identificador " + s.value + " no reconocido");
+}
+
+public String getNombre(){
+return this.nombre;
+}
+:}
+
+action code
+{:
+
+:}
+
+terminal String tmodule, tend, tas, tigual, tcorabierto, tcoma, tcorcerrar, tpublic, tprivate, tdim, tstatic, tboolean, tchar, tdouble, tinteger, tlong, tstring, tmas, tmenos, tconcate, tconsole, tpunto, treadline, ttrue, tfalse;
+terminal String tpor, tdiv, tparabrir, tparcerrar, tsub, tbyval, tfunction, texit, twhile, tfor, twriteline, tif, tthen, telseif, telse, tnext, tto, tstep, tdo, tloop, tuntil, tselect, tcase, treturn, tmenor, tmenorigual;
+terminal String tmayor, tmayorigual, tand, tor, tnot, tnumero, tid, tcadena, terrorlexico, tcom, tdiferente, tmain;
+
+non terminal String INICIO, LSENTENCIAS, SENTENCIAS, DECLARACION, LDIMENSIONES, MATRIZ, ACCESO, LISTAVAR, VAR, TIPO, EXP, LLAMADA, PARAMETROSLLAMADA, ASIGNACION, METODOS, METODO, PARAMETROS, FUNCIONES, LSENTENCIASM;
+non terminal String LSENTENCIASF, SENTENCIASM, SENTENCIASF, CERRARCICLO, IMPRIMIR, IFM, ELSEM, IF, ELSEF, WHILEM, WHILE, FORM, FOR, AUMENTOFOR, DOM, DO, SWITCHM, CASEM, SWITCH, CASE, RETURN, CONDICION;
+non terminal String AUXDECL, OPERACION, CASEFINALM, CASEFINAL, MODULO, END, AS, CORCHETEABIERTO, LSENTENCIASCICLOSM, LSENTENCIASCICLOSF, SENTENCIASCICLOSM, SENTENCIASCICLOSF, IFCICLOSM, IFCICLOSF, ELSECICLOSM, ELSECICLOSF;
+non terminal String WHILECICLOSM, WHILECICLOSF, FORCICLOSM, FORCICLOSF, DOCICLOSM, DOCICLOSF, SWITCHCICLOSM, SWITCHCICLOSF, CASECICLOSM, CASECICLOSF, CASEFINALCICLOSM, CASEFINALCICLOSF, NUM, ACCESOMET;
+
+precedence left tmas, tmenos;
+precedence left tpor, tdiv;
+precedence left tconcate;
+precedence left tmenor, tmenorigual, tmayor, tmayorigual, tigual, tdiferente;
+precedence left tand, tor;
+precedence right tnot;
+
+start with INICIO;
+
+INICIO ::= tmodule tid:id LSENTENCIAS:lsentencias tend tmodule{:
+        nombre = id;
+        if(tienescanner){
+            contenido += "import java.util.Scanner;\npublic class " + id + "{\nstatic Scanner sc = new Scanner(System.in);\n" + lsentencias + "}";
+        }else{
+            contenido += "public class " + id + "{\n" + lsentencias + "}";
+        }
+:};
+
+LSENTENCIAS ::= LSENTENCIAS:lsentencias SENTENCIAS:sentencias{:RESULT = lsentencias + sentencias;:}
+            | SENTENCIAS:sentencias{:RESULT = sentencias;:};
+
+SENTENCIAS ::= DECLARACION:decl{:
+                //System.out.println("Entro a declaracion: " + decl);
+              
+                RESULT = decl;
+            :} 
+            | ASIGNACION:asig{:
+                //System.out.println("Entro a asignacion: " + asig);
+                String temp = "";
+                for(int i = 0; i < identaciones; i++){
+                    temp += "\t";
+                }
+                RESULT = asig;
+            :}
+            | METODOS:met{:
+                //System.out.println("Entro a metodos: " + met);
+                RESULT = met;
+            :}
+            | error;
+
+DECLARACION ::= ACCESO:acceso LISTAVAR:listavar AS:as TIPO:tipio AUXDECL:auxdecl{:
+                String temp = "";
+                if(auxdecl.contains("console.r")){
+                    System.out.println("tiene readline " + tipio + " " + tipio.compareTo("int") + " " + auxdecl);
+                    if(tipio.compareTo("int") == 0){
+                        auxdecl = auxdecl.replace("console.readline", "sc.nextInt()");
+                    }else if(tipio.compareTo("String") == 0){
+                        auxdecl = auxdecl.replace("console.readline", "sc.nextLine()");
+                    }
+                }
+//System.out.println(auxdecl);
+                RESULT = acceso + " " + tipio + " " + listavar  + " " + auxdecl + ";\n";
+            :}
+            | ACCESO:acceso tid:id CORCHETEABIERTO:corchete LDIMENSIONES:ldim AS:as TIPO:tipo{:
+                String temp = "";
+                
+                String dim[] = ldim.split(",");
+                temp += acceso + " " + tipo;
+                for(int i = 0; i < dim.length; i++){
+                    temp += "[]";
+                }
+                temp += id;
+                temp += " = new " + tipo + "[";
+                for(int i = 0; i < dim.length; i++){
+                    if(i == dim.length - 1){
+                        temp += dim[i];
+                    }else{
+                        temp += dim[i] + "][";
+                    }
+                }
+                RESULT = temp + ";\n";
+            :};
+
+AUXDECL ::= tigual CONDICION:con{:
+                RESULT = "=" + con + "";
+            :}
+        | {:
+                RESULT = "";
+            :};
+
+AS ::= tas{:
+            RESULT = "as";
+        :}
+    | error;
+
+CORCHETEABIERTO ::= tcorabierto{:
+            RESULT = "[";
+        :};
+
+LDIMENSIONES ::= EXP:exp tcoma LDIMENSIONES:ldim{:
+                RESULT = exp + "," + ldim;
+            :}
+                | EXP:exp tcorcerrar{:
+                RESULT = exp + "]";
+            :};
+
+MATRIZ ::= tid:id CORCHETEABIERTO:corchete LDIMENSIONES:ldim{:
+                String temp = "";
+                String dim[] = ldim.split(",");
+                for(int i = 0; i < dim.length; i++){
+                    if(i == dim.length -1){
+                        temp += dim[i];
+                    }else{
+                        temp += dim[i] + "][";
+                    }
+                }
+                RESULT = id  + "[" + temp;
+            :};
+
+ACCESO ::= tpublic{:
+            RESULT = "public";
+        :}
+        | tprivate{:
+            RESULT = "private";
+        :}
+        | tdim{:
+            RESULT = "private";
+        :}
+        | tstatic{:
+            RESULT = "static";
+        :};
+
+LISTAVAR ::= tid:id VAR:var{:
+                RESULT = id + " " + var;
+            :}
+            | tid:id{:
+                RESULT = id;
+            :};
+
+VAR ::= tcoma tid:id VAR:var{:
+            RESULT = "," + id + " " + var;
+        :}
+       | tcoma tid:id{:
+            RESULT = "," + id;
+        :};
+
+TIPO ::= tboolean{:
+            RESULT = "boolean";
+        :}
+        | tchar{:RESULT = "char";:}
+        | tdouble{:RESULT = "double";:}
+        | tinteger{:RESULT = "int";:}
+        | tlong{:RESULT = "long";:}
+        | tstring{:RESULT = "String";:}
+        | error;
+
+EXP ::= OPERACION:op{:RESULT = op;:}
+    | EXP:exp1 tconcate EXP:exp2{:RESULT = exp1 + "+" + exp2;:}
+    | EXP:exp1 tmas EXP:exp2{:RESULT = exp1 + "+" + exp2;:}
+    | EXP:exp1 tmenos EXP:exp2{:RESULT = exp1 + "-" + exp2;:}
+    | EXP:exp1 tpor EXP:exp2{:RESULT = exp1 + "*" + exp2;:}
+    | EXP:exp1 tdiv EXP:exp2{:RESULT = exp1 + "/" + exp2;:}
+    | tparabrir EXP:exp1 tparcerrar{:RESULT = "(" + exp1 + ")";:}
+    | tmenos EXP:exp1{:RESULT = "-" + exp1;:};
+
+OPERACION ::= tnumero:num{:
+                RESULT = num;
+            :}
+            | tcadena:cade {:
+                RESULT = cade;
+            :}
+            | tid:id{:
+                RESULT = id;
+            :}
+            | ttrue{:RESULT = "true";:}
+            | tfalse{:RESULT = "false";:}
+            | MATRIZ:matriz{:RESULT = matriz;:}
+            | LLAMADA:llamada{:RESULT = llamada;:}
+            | tconsole tpunto treadline{:tienescanner = true;RESULT = "console.readline";:}
+            | error;
+
+LLAMADA ::= tid:id tparabrir PARAMETROSLLAMADA:parametros{:RESULT = id + "(" + parametros;:};
+
+PARAMETROSLLAMADA ::= EXP:exp tcoma PARAMETROSLLAMADA:parametros{:RESULT = exp + "," + parametros;:}
+                    | EXP:exp tparcerrar{:RESULT = exp + ")";:}
+                    | tparcerrar{:RESULT = ")";:};
+
+ASIGNACION ::= tid:id tigual EXP:exp{:RESULT = id +"=" + exp + ";\n";:}
+            | tid:id tcorabierto LDIMENSIONES:ldimen tigual EXP:exp{:
+                String temp = "";
+                String dim[] = ldimen.split(",");
+                for(int i = 0; i < dim.length; i++){
+                    if(i == dim.length -1){
+                        temp += dim[i];
+                    }else{
+                        temp += dim[i] + "][";
+                    }
+                }
+                RESULT = id + "[" + temp + "=" + exp + ";\n";:};
+
+METODOS ::= METODO:meto{:
+            RESULT = meto;
+        :}
+        | FUNCIONES:fun{:
+            RESULT = fun;
+        :};
+
+METODO ::= ACCESOMET:acceso tsub tid:id tparabrir PARAMETROS:parametros LSENTENCIASM:sentencias tend tsub
+        {:
+            if(id == "Main"){
+                RESULT = "public static void  main(String[] args){\n" + sentencias + "}\n";
+            }else{
+                RESULT = acceso + " void " + id + "(" + parametros + "{\n" + sentencias + "}\n";
+            }
+        :}
+        | ACCESOMET tsub tmain tparabrir tparcerrar LSENTENCIASM:sentencias tend tsub{:RESULT = "public static void  main(String[] args){\n" + sentencias + "}\n";:}
+        | error tparabrir PARAMETROS LSENTENCIASM tend tsub;
+
+PARAMETROS ::= tbyval tid:id AS:as TIPO:tipo PARAMETROS:parametros{:RESULT = tipo + " " + id + parametros;:}
+            | tcoma tbyval tid:id AS:as TIPO:tipo PARAMETROS:parametros{:RESULT = ", " + tipo + " " + id + parametros;:}
+            | tparcerrar{:RESULT = ")";:}
+            | error PARAMETROS;
+
+FUNCIONES ::= ACCESOMET:acceso tfunction tid:id tparabrir PARAMETROS:parametros tas TIPO:tipo LSENTENCIASF:sentencias tend tfunction{:RESULT = acceso + " " + tipo + " " + id + "(" + parametros + "{\n" +sentencias + "}\n";:}
+            | error tparabrir PARAMETROS AS TIPO LSENTENCIASF tend tfunction;
+
+ACCESOMET ::= tpublic{:RESULT = "public";:}
+            | tprivate{:RESULT = "private";:}
+            | tstatic{:RESULT = "static";:}
+            | {:RESULT = "public";:};
+
+LSENTENCIASM ::= SENTENCIASM:sentencias LSENTENCIASM:lsentencias{:RESULT = sentencias + lsentencias;:}
+                | SENTENCIASM:sentencias{:RESULT = sentencias;:};
+
+LSENTENCIASF ::= SENTENCIASF:sentencias LSENTENCIASF:lsentencias{:RESULT = sentencias + lsentencias;:}
+                | SENTENCIASF:sentencias{:RESULT = sentencias;:};
+
+LSENTENCIASCICLOSM ::= SENTENCIASCICLOSM:sentencias LSENTENCIASCICLOSM:lsentencias{:RESULT = sentencias + lsentencias;:}
+                | SENTENCIASCICLOSM:sentencias{:RESULT = sentencias;:};
+
+LSENTENCIASCICLOSF ::= SENTENCIASCICLOSF:sentencias LSENTENCIASCICLOSF:lsentencias{:RESULT = sentencias + lsentencias;:}
+                | SENTENCIASCICLOSF:sentencias{:RESULT = sentencias;:};
+
+SENTENCIASM ::= IFM:si{:RESULT = si + "\n";:}
+            | WHILEM:mientras{:RESULT = mientras + "\n";:}
+            | FORM:para{:RESULT = para + "\n";:}
+            | DOM:hacer{:RESULT = hacer + "\n";:}
+            | SWITCHM:casos{:RESULT = casos + "\n";:}
+            | DECLARACION:decl{:RESULT = decl;:}
+            | ASIGNACION:asig{:RESULT = asig;:}
+            | LLAMADA:llamada{:RESULT = llamada + ";\n";:}
+            | IMPRIMIR:imprimir{:RESULT = imprimir;:};
+
+SENTENCIASCICLOSM ::= IFCICLOSM:si{:RESULT = si + "\n";:}
+            | WHILECICLOSM:mientras{:RESULT = mientras+ "\n";:}
+            | FORCICLOSM:para{:RESULT = para+ "\n";:}
+            | DOCICLOSM:hacer{:RESULT = hacer+ "\n"; :}
+            | SWITCHCICLOSM:casos{:RESULT = casos+ "\n";:}
+            | DECLARACION:decl{:RESULT = decl+ "\n";:}
+            | ASIGNACION:asig{:RESULT = asig+ "\n";:}
+            | LLAMADA:llamada{:RESULT = llamada + ";\n";:}
+            | IMPRIMIR:imprimir{:RESULT = imprimir+ "\n";:}
+            | texit CERRARCICLO{:RESULT = "break;\n";:};
+
+SENTENCIASF ::= IF:si{:RESULT = si+ "\n";:}
+            | WHILE:mientras{:RESULT = mientras+ "\n";:}
+            | FOR:para{:RESULT = para+ "\n";:}
+            | DO:hacer{:RESULT = hacer+ "\n";:}
+            | SWITCH:casos{:RESULT = casos+ "\n";:}
+            | DECLARACION:decl{:RESULT = decl+ "\n";:}
+            | ASIGNACION:asig{:RESULT = asig+ "\n";:}
+            | RETURN:retorna{:RESULT = retorna+ "\n";:}
+            | LLAMADA:llamada{:RESULT = llamada + ";\n";:}
+            | IMPRIMIR:imprimir{:RESULT = imprimir+ "\n";:};
+
+SENTENCIASCICLOSF ::= IFCICLOSF:si{:RESULT = si+ "\n";:}
+            | WHILECICLOSF:mientras{:RESULT = mientras+ "\n";:}
+            | FORCICLOSF:para{:RESULT = para+ "\n";:}
+            | DOCICLOSF:hacer{:RESULT = hacer+ "\n";:}
+            | SWITCHCICLOSF:casos{:RESULT = casos+ "\n";:}
+            | DECLARACION:decl{:RESULT = decl+ "\n";:}
+            | ASIGNACION:asig{:RESULT = asig+ "\n";:}
+            | RETURN:ret{:RESULT = ret+ "\n";:}
+            | LLAMADA:llamada{:RESULT = llamada + ";\n";:}
+            | IMPRIMIR:imprimir{:RESULT = imprimir+ "\n";:}
+            | texit CERRARCICLO{:RESULT = "break;\n";:};
+
+CERRARCICLO ::= twhile{:RESULT = "mientras";:}
+            | tfor{:RESULT = "para";:}
+            | error;
+
+IMPRIMIR ::= tconsole tpunto twriteline tparabrir EXP:op tparcerrar{:
+            RESULT = "System.out.println(" + op + ");\n";
+        :};
+
+IFM ::= tif CONDICION:cond tthen LSENTENCIASM:sentencias ELSEM:sino{:RESULT = "if(" + cond + "){\n" + sentencias + "}\n" + sino;:};
+
+ELSEM ::= telseif CONDICION:cond tthen LSENTENCIASM:sentencias ELSEM:sino{:RESULT = "else if(" + cond + "){\n" + sentencias + "}\n";:}
+        | telse LSENTENCIASM:sentencias tend tif{:RESULT = "else{\n" + sentencias + "}\n";:}
+        | tend tif{:RESULT = "";:};
+
+IF ::= tif CONDICION:cond tthen LSENTENCIASF:sentencias ELSEF:sino{:RESULT = "if(" + cond + "){\n" + sentencias + "}\n" + sino;:};
+
+ELSEF ::= telseif CONDICION:cond tthen LSENTENCIASF:sentencias ELSEF:sino{:RESULT = "else if{" + cond + "){\n" + sentencias + "}\n" + sino;:}
+        | telse LSENTENCIASF:sentencias tend tif{:RESULT = "else{\n" + sentencias + "}\n";:}
+        | tend tif{:RESULT = "";:};
+
+IFCICLOSM ::= tif CONDICION:cond tthen LSENTENCIASCICLOSM:sentencias ELSECICLOSM:sino{:RESULT = "if(" + cond + "){\n" + sentencias + "}\n" + sino;:};
+
+ELSECICLOSM ::= telseif CONDICION:cond tthen LSENTENCIASCICLOSM:sentencias ELSECICLOSM:sino{:RESULT = "else if(" + cond + "){\n" + sentencias + "}\n" + sino;:}
+        | telse LSENTENCIASCICLOSM:sentencias tend tif{:RESULT = "else{\n" + sentencias + "}\n";:}
+        | tend tif{:RESULT = "";:};
+
+IFCICLOSF ::= tif CONDICION:cond tthen LSENTENCIASCICLOSF:sentencias ELSECICLOSF:sino{:RESULT = "if(" + cond +"){\n" + sentencias + "}\n" + sino;:};
+
+ELSECICLOSF ::= telseif CONDICION:cond tthen LSENTENCIASCICLOSF:sentencias ELSECICLOSF:sino{:RESULT = "else if(" + cond + "){\n" + sentencias + "}\n" + sino;:}
+        | telse LSENTENCIASCICLOSF:sentencias tend tif{:RESULT = "else{\n" + sentencias + "}\n";:}
+        | tend tif{:RESULT = "";:};
+
+WHILEM ::= twhile CONDICION:cond LSENTENCIASCICLOSM:sentencias tend twhile{:RESULT = "while(" + cond + "){\n" + sentencias + "}\n";:};
+
+WHILE ::= twhile CONDICION:cond LSENTENCIASCICLOSF:sentencias tend twhile{:RESULT = "while(" + cond + "){\n" + sentencias + "}\n";:};
+
+WHILECICLOSM ::= twhile CONDICION:cond LSENTENCIASCICLOSM:sentencias tend twhile{:RESULT = "while(" + cond + "){\n" + sentencias + "}\n";:};
+
+WHILECICLOSF ::= twhile CONDICION:cond LSENTENCIASCICLOSF:sentencias tend twhile{:RESULT = "while{" + cond + "){\n" + sentencias + "}\n";:};
+
+FORM ::= tfor AUMENTOFOR:aumento LSENTENCIASM:sentencias tnext{:RESULT = "for(" + aumento +"){\n" + sentencias + "}\n";:};
+
+FOR ::= tfor AUMENTOFOR:aumento LSENTENCIASF:sentencias tnext{:RESULT = "for(" + aumento + "){\n" + sentencias + "}\n";:};
+
+FORCICLOSM ::= tfor AUMENTOFOR:aumento LSENTENCIASCICLOSM:sentencias tnext{:RESULT = "for(" + aumento +"){\n" + sentencias + "}\n";:};
+
+FORCICLOSF ::= tfor AUMENTOFOR:aumento LSENTENCIASCICLOSF:sentencias tnext{:RESULT = "for(" + aumento + "){\n" + sentencias + "}\n";:};
+
+AUMENTOFOR ::= tid:id tas tinteger tigual NUM:exp1 tto NUM:exp2 tstep NUM:exp3{:
+                if(Integer.parseInt(exp2) > Integer.parseInt(exp1)){
+                    RESULT = "int " + id + " = " + exp1 + "; " + id + " < " + exp2 +"; " + id + " = " + id + " + (" + exp3 + ")";
+                }else if(Integer.parseInt(exp2) < Integer.parseInt(exp1)){
+                    RESULT = "int " + id + " = " + exp1 + "; " + id + " > " + exp2 + "; " + id + " = " + id + " + (" + exp3 + ")"; 
+                }else{
+                    RESULT = "int " + id + " = " + exp1 + "; " + id + " < " + exp2 + "; " + id + " = " + id + " + (" + exp3 + ")";
+                }
+            :};
+
+NUM ::= tmenos tnumero:num{:RESULT = "-" + num;:}
+        |tnumero:num{:RESULT = num;:};
+
+DOM ::= tdo LSENTENCIASM:sentencias tloop tuntil CONDICION:cond{:RESULT = "do{\n" + sentencias + "}while(" + cond + ");\n";:};
+
+DO ::= tdo LSENTENCIASF:sentencias tloop tuntil CONDICION:cond{:RESULT = "do{\n" + sentencias + "}while(" + cond + ");\n";:};
+
+DOCICLOSM ::= tdo LSENTENCIASCICLOSM:sentencias tloop tuntil CONDICION:cond{:RESULT = "do{\n" + sentencias + "}while(" + cond + ");\n";:};
+
+DOCICLOSF ::= tdo LSENTENCIASCICLOSF:sentencias tloop tuntil CONDICION:cond{:RESULT = "do{\n" + sentencias + "}while(" + cond + ");\n";:};
+
+SWITCHM ::= tselect tcase tid:id CASEM:caso tend tselect{:RESULT = "switch(" + id + "){\n" + caso + "}\n";:};
+
+CASEM ::= tcase EXP:exp LSENTENCIASM:sentencias CASEM:caso{:RESULT = "case " + exp + ":\n" + sentencias + "break;\n" + caso;:}
+        | tcase EXP:exp CASEM:caso{:RESULT = "case " + exp + ":\nbreak;" + caso;:}
+        | tcase EXP:exp LSENTENCIASM:sentencias CASEFINALM:casef{:RESULT = "case " + exp + ":\n" + sentencias + "break;\n" + casef;:}
+        | tcase EXP:exp CASEFINALM:casef{:RESULT = "case " + exp + ":\nbreak;\n" + casef;:};
+
+CASEFINALM ::= tcase telse LSENTENCIASM:sentencias{:RESULT = "default:\n" + sentencias +"\n";:}
+            | tcase telse{:RESULT = "default\n";:}
+            | {:RESULT = "";:};
+
+SWITCHCICLOSM ::= tselect tcase tid:id CASECICLOSM:caso tend tselect{:RESULT = "switch(" + id + "){\n" + caso + "}\n";:};
+
+CASECICLOSM ::= tcase EXP:exp LSENTENCIASCICLOSM:sent CASECICLOSM:caso{:RESULT = "case " + exp + ":\n" + sent + "break;\n" + caso;:}
+        | tcase EXP:exp CASECICLOSM:caso{:RESULT = "case " + exp + ":\nbreak;\n" + caso;:}
+        | tcase EXP:exp LSENTENCIASCICLOSM:sent CASEFINALCICLOSM:caso{:RESULT = "case " + exp + ":\n" + sent + "break;\n" + caso;:}
+        | tcase EXP:exp CASEFINALCICLOSM:caso{:RESULT = "case " + exp + ":\nbreak;\n" + caso;:};
+
+CASEFINALCICLOSM ::= tcase telse LSENTENCIASCICLOSM:sent{:RESULT = "default:\n" + sent + "\n";:}
+            | tcase telse{:RESULT = "default:\n";:}
+            | ;
+
+SWITCH ::= tselect tcase tid:id CASE:caso tend tselect{:RESULT = "switch(" + id + "){\n" + caso + "}\n";:};
+
+CASE ::= tcase EXP:exp LSENTENCIASF:sent CASE:caso{:RESULT = "case " + exp + ":\n" + sent + "break;\n" + caso;:}
+        | tcase EXP:exp CASE:caso{:RESULT = "case " + exp + ":\nbreak;\n" + caso;:}
+        | tcase EXP:exp LSENTENCIASF:sent CASEFINAL:caso{:RESULT = "case " + exp + ":\n" + sent + "break;\n" + caso;:}
+        | tcase EXP:exp CASEFINAL:caso{:RESULT = "case " + exp + ":\nbreak;\n" + caso;:};
+
+CASEFINAL ::= tcase telse LSENTENCIASF:sent{:RESULT = "default:\n" + sent + "\n";:}
+            | tcase telse{:RESULT = "default:\n";:}
+            | {:RESULT = "";:};
+
+SWITCHCICLOSF ::= tselect tcase tid:id CASECICLOSF:caso tend tselect{:RESULT = "switch(" + id + "){\n" + caso + "}";:};
+
+CASECICLOSF ::= tcase EXP:exp LSENTENCIASCICLOSF:sent CASECICLOSF:caso{:RESULT = "case " + exp + ":\n" + sent + "break;\n" + caso;:}
+        | tcase EXP:exp CASECICLOSF:caso{:RESULT = "case " + exp + ":\nbrak;\n" + caso;:}
+        | tcase EXP:exp LSENTENCIASCICLOSF:sent CASEFINALCICLOSF:caso{:RESULT = "case " + exp + ":\n" + sent + "break;\n" + caso;:}
+        | tcase EXP:exp CASEFINALCICLOSF:caso{:RESULT = "case " + exp + ":\nbreak;\n" + caso;:};
+
+CASEFINALCICLOSF ::= tcase telse LSENTENCIASCICLOSF:sent{:RESULT = "default:\n" + sent + "\n";:}
+            | tcase telse{:RESULT = "default:\n";:}
+            | {:RESULT = "";:};
+
+RETURN ::= treturn EXP:exp{:RESULT = "return " + exp + ";\n";:};
+
+CONDICION ::= CONDICION:cond1 tmenor CONDICION:cond2{:RESULT = cond1 + "<" + cond2;:}
+            | CONDICION:cond1 tmenorigual CONDICION:cond2{:RESULT = cond1 + "<=" + cond2;:}
+            | CONDICION:cond1 tmayor CONDICION:cond2{:RESULT = cond1 + ">" + cond2;:}
+            | CONDICION:cond1  tmayorigual CONDICION:cond2{:RESULT = cond1 + ">=" + cond2;:}
+            | CONDICION:cond1 tigual CONDICION:cond2{:RESULT = cond1 + "==" + cond2;:}
+            | CONDICION:cond1 tdiferente CONDICION:cond2{:RESULT = cond1 + "!=" + cond2;:}
+            | CONDICION:cond1 tand CONDICION:cond2{:RESULT = cond1 + "&&" + cond2;:}
+            | CONDICION:cond1 tor CONDICION:cond2{:RESULT = cond1 + "||" + cond2;:}
+            | tnot CONDICION:cond{:RESULT = "!" + cond;:}
+            | EXP:exp{:RESULT = exp;:};
